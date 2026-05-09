@@ -1,0 +1,10 @@
+-- Add missing revenue and stat columns.
+BEGIN;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS total_earnings DECIMAL(15, 2) NOT NULL DEFAULT 0;
+
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS reputation_score INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS completed_tasks_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS volunteer_hours DECIMAL(10, 2) NOT NULL DEFAULT 0;
+
+COMMIT;

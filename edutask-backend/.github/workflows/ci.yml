@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      APP_VERSION: ci
+      LOG_LEVEL: info
+      CORS_ALLOWED_ORIGINS: http://localhost:3001
+      JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-secret' }}
+      JWT_ISSUER: ci
+      JWT_AUDIENCE: ci-api
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: ci
+      PGPASSWORD: ci
+      PGDATABASE: ci
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || '' }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || '' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
+      ENABLE_AUTOMATION: "true"
+      AUTOMATION_DRY_RUN: "false"
+      ENABLE_RATE_LIMITS: "true"
+      ENABLE_IDEMPOTENCY: "true"
+      JSON_BODY_LIMIT: 256kb
+      URLENCODED_BODY_LIMIT: 256kb
+      SLOW_QUERY_LOG_MS: "200"
+      DB_SSL: "false"
+      COVERAGE_MIN_LINES: "60"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: edutask-backend/package.json
+
+      - name: Install dependencies
+        working-directory: edutask-backend
+        run: npm install
+
+      - name: Lint
+        working-directory: edutask-backend
+        run: npm run lint
+
+      - name: Dependency Audit
+        working-directory: edutask-backend
+        run: npm audit --audit-level=high
+
+      - name: Test
+        working-directory: edutask-backend
+        run: npm run test
+
+      - name: Coverage
+        working-directory: edutask-backend
+        run: |
+          npm run test:coverage | tee coverage.out
+          LINE_PCT=$(grep -E "lines\\s*:" coverage.out | tail -n 1 | sed -E 's/.*lines[^0-9]*([0-9]+\\.[0-9]+)%.*/\\1/')
+          echo "Detected line coverage: ${LINE_PCT}%"
+          awk -v actual="${LINE_PCT}" -v min="${COVERAGE_MIN_LINES}" 'BEGIN { if (actual+0 < min+0) { exit 1 } }'
+
+      - name: Financial Migrations + Verify
+        if: ${{ secrets.SUPABASE_DB_DIRECT_URL != '' && secrets.SUPABASE_DB_POOLER_URL != '' }}
+        working-directory: edutask-backend
+        env:
+          NODE_ENV: production
+          DB_SSL: "true"
+          SUPABASE_DB_DIRECT_URL: ${{ secrets.SUPABASE_DB_DIRECT_URL }}
+          SUPABASE_DB_POOLER_URL: ${{ secrets.SUPABASE_DB_POOLER_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_POOLER_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || '' }}
+          PORT: 5000
+          APP_VERSION: ci
+          LOG_LEVEL: info
+          CORS_ALLOWED_ORIGINS: https://ci.local
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-secret' }}
+          JWT_ISSUER: ci
+          JWT_AUDIENCE: ci-api
+          ENABLE_AUTOMATION: "false"
+          AUTOMATION_DRY_RUN: "true"
+          ENABLE_RATE_LIMITS: "true"
+          ENABLE_IDEMPOTENCY: "true"
+          JSON_BODY_LIMIT: 256kb
+          URLENCODED_BODY_LIMIT: 256kb
+          SLOW_QUERY_LOG_MS: "500"
+        run: |
+          npm run migrate:hardening
+          npm run migrate:drift-guard
+          npm run migrate:reconcile
+          npm run verify:financial

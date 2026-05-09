@@ -1,0 +1,51 @@
+{
+  "name": "edutask-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "node -r ./scripts/load-env.js src/server.js",
+    "start": "node -r ./scripts/load-env.js src/server.js",
+    "lint": "node scripts/lint.js",
+    "test": "node -r ./tests/helpers/test-env-loader.js --test tests/**/*.test.js",
+    "test:coverage": "c8 --reporter=text --reporter=text-summary node -r ./tests/helpers/test-env-loader.js --test tests/**/*.test.js",
+    "ci:verify": "npm run lint && npm run test && npm run test:coverage",
+    "load:test": "node load_test/run.js",
+    "load:collisions": "node load_test/collisions.js",
+    "migrate:v2": "node scripts/run-sql-file.js database/migrations/schema_v2_migration.sql",
+    "rollback:v2": "node scripts/run-sql-file.js database/migrations/schema_v2_rollback.sql",
+    "migrate:backfill": "node scripts/run-sql-file.js database/migrations/schema_v2_backfill_cleanup.sql",
+    "migrate:bootstrap": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/schema_v5_authoritative_bootstrap.sql",
+    "migrate:hardening": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/schema_v3_production_hardening.sql",
+    "migrate:auth": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602220001_auth_users_enrichment.sql",
+    "migrate:drift-guard": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602210002_financial_drift_hardening.sql",
+    "migrate:rls": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602210003_supabase_financial_rls.sql",
+    "migrate:reconcile": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602210001_financial_reconciliation.sql",
+    "migrate:enterprise": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602260001_enterprise_upgrade.sql",
+    "migrate:revenue": "node -r ./scripts/load-env.js scripts/run-sql-file.js database/migrations/202602260002_revenue_referral_recommendation.sql",
+    "load:financial": "node -r ./scripts/load-env.js load_test/load-test.js",
+    "verify:financial": "node -r ./scripts/load-env.js scripts/final_verify.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "pg": "^8.13.3",
+    "redis": "^4.7.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "autocannon": "^7.14.0",
+    "c8": "^10.1.3",
+    "dotenv": "^17.3.1",
+    "prisma": "^6.19.2"
+  }
+}

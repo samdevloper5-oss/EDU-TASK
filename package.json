@@ -1,0 +1,19 @@
+{
+  "name": "edutask-monorepo-root",
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend \"npm --prefix edutask-backend run dev\" \"npm --prefix edutask-frontend run dev\"",
+    "verify:financial": "npm --prefix edutask-backend run verify:financial",
+    "migrate:reconcile": "npm --prefix edutask-backend run migrate:reconcile",
+    "migrate:bootstrap": "npm --prefix edutask-backend run migrate:bootstrap",
+    "migrate:hardening": "npm --prefix edutask-backend run migrate:hardening",
+    "migrate:drift-guard": "npm --prefix edutask-backend run migrate:drift-guard",
+    "migrate:rls": "npm --prefix edutask-backend run migrate:rls",
+    "load:financial": "npm --prefix edutask-backend run load:financial",
+    "test": "npm --prefix edutask-backend run test",
+    "lint": "npm --prefix edutask-backend run lint"
+  }
+}

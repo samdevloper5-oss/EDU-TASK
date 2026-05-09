@@ -1,0 +1,438 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// Enums
+// ===========================================
+
+enum UserRole {
+  student
+  admin
+}
+
+enum TrustTier {
+  basic
+  verified
+  trusted
+}
+
+enum TaskType {
+  paid
+  volunteer
+}
+
+enum TaskStatus {
+  draft
+  published
+  application_open
+  executor_selected
+  in_progress
+  under_review
+  completed
+  cancelled
+  disputed
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+enum TransactionType {
+  deposit
+  escrow_lock
+  escrow_release_approval
+  escrow_release_auto
+  escrow_refund
+  withdrawal_request
+  withdrawal_processed
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+  cancelled
+}
+
+enum ReviewOutcome {
+  approved
+  revision_requested
+  auto_released
+}
+
+enum DisputeStatus {
+  pending
+  auto_resolved
+  under_review
+  resolved
+  escalated
+}
+
+enum DisputeType {
+  scope_mismatch
+  missing_submission
+  deadline_violation
+}
+
+// ===========================================
+// Tables
+// ===========================================
+
+model User {
+  id                   String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                String     @unique @db.VarChar(255)
+  phone                String     @unique @db.VarChar(20)
+  student_id           String     @db.VarChar(100)
+  full_name            String     @db.VarChar(255)
+  university_name      String     @db.VarChar(255)
+  department           String     @db.VarChar(255)
+  location             String     @db.VarChar(255)
+  skills              Json       @default("[]")
+  password_hash        String     @db.VarChar(255)
+  profile_picture_url  String?    @db.VarChar(500)
+  role                 UserRole   @default(student)
+  is_verified          Boolean    @default(false)
+  trust_tier           TrustTier  @default(basic)
+  email_verified       Boolean    @default(false)
+  phone_verified       Boolean    @default(false)
+  is_active            Boolean    @default(true)
+  is_suspended         Boolean    @default(false)
+  last_login_at        DateTime?  @db.Timestamptz(6)
+  created_at           DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime   @default(now()) @db.Timestamptz(6)
+  version              Int        @default(1)
+  trust_score          Int        @default(0)
+
+  // Relations
+  profile              Profile?
+  posted_tasks         Task[]             @relation("TaskPoster")
+  executed_tasks       Task[]             @relation("TaskExecutor")
+  applications         TaskApplication[]
+  assignments          TaskAssignment[]
+  submissions          WorkSubmission[]
+  reviews_given        Review[]           @relation("Reviewer")
+  task_reviews_given   TaskReview[]       @relation("TaskReviewer")
+  task_reviews_received TaskReview[]      @relation("TaskReviewee")
+  wallet               Wallet?
+  transactions         WalletTransaction[]
+  disputes_filed       Dispute[]          @relation("DisputeFiler")
+  disputes_handled     Dispute[]          @relation("DisputeAdmin")
+  chat_messages        ChatMessage[]
+  notifications        Notification[]
+  audit_logs           AuditLog[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                   String   @unique @db.Uuid
+  full_name                 String   @db.VarChar(255)
+  institution               String?  @db.VarChar(255)
+  department                String?  @db.VarChar(255)
+  bio                       String?
+  profile_image_url         String?  @db.VarChar(500)
+  verification_document_url String?  @db.VarChar(500)
+  verification_status       String?  @default("unverified") @db.VarChar(50)
+  reputation_score          Int      @default(0)
+  completed_tasks_count     Int      @default(0)
+  volunteer_hours           Decimal  @default(0) @db.Decimal(10, 2)
+  created_at                DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime @default(now()) @db.Timestamptz(6)
+  version                   Int      @default(1)
+
+  user                      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Task {
+  id                   String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  poster_id            String            @db.Uuid
+  task_type            TaskType
+  status               TaskStatus        @default(draft)
+  title                String            @db.VarChar(255)
+  description          String
+  scope                String
+  deliverables         String
+  acceptance_criteria String
+  required_members     Int?
+  budget               Decimal?          @db.Decimal(10, 2)
+  deadline             DateTime          @db.Timestamptz(6)
+  review_window_hours  Int               @default(48)
+  max_revisions        Int               @default(2)
+  application_deadline DateTime?         @db.Timestamptz(6)
+  selected_executor_id String?           @db.Uuid
+  submitted_at         DateTime?         @db.Timestamptz(6)
+  completed_at         DateTime?         @db.Timestamptz(6)
+  cancelled_at         DateTime?         @db.Timestamptz(6)
+  cancellation_reason  String?
+  created_at           DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime          @default(now()) @db.Timestamptz(6)
+  version              Int               @default(1)
+  attachments          Json?             @db.JsonB
+  required_skills      Json              @default("[]") @db.JsonB
+  is_deleted           Boolean           @default(false)
+
+  poster               User              @relation("TaskPoster", fields: [poster_id], references: [id], onDelete: Restrict)
+  executor             User?             @relation("TaskExecutor", fields: [selected_executor_id], references: [id], onDelete: SetNull)
+  applications         TaskApplication[]
+  assignments          TaskAssignment[]
+  submission           WorkSubmission?
+  review               Review?
+  task_reviews         TaskReview[]
+  escrow               Escrow?
+  dispute              Dispute?
+  chat_messages        ChatMessage[]
+  notifications        Notification[]
+  transactions         WalletTransaction[]
+
+  @@map("tasks")
+}
+
+model TaskApplication {
+  id            String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id       String            @db.Uuid
+  applicant_id  String            @db.Uuid
+  status        ApplicationStatus @default(pending)
+  cover_letter  String?
+  applied_at    DateTime          @default(now()) @db.Timestamptz(6)
+  reviewed_at   DateTime?         @db.Timestamptz(6)
+  created_at    DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime          @default(now()) @db.Timestamptz(6)
+  version       Int               @default(1)
+
+  task          Task              @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  applicant     User              @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  @@unique([task_id, applicant_id], name: "unique_application")
+  @@map("task_applications")
+}
+
+model TaskAssignment {
+  id                   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id              String   @db.Uuid
+  executor_id          String   @db.Uuid
+  assigned_at          DateTime @default(now()) @db.Timestamptz(6)
+  hours_logged         Decimal  @default(0) @db.Decimal(10, 2)
+  contribution_notes    String?
+  certificate_eligible Boolean  @default(false)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+  version              Int      @default(1)
+
+  task                 Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  executor             User     @relation(fields: [executor_id], references: [id], onDelete: Cascade)
+
+  @@unique([task_id, executor_id], name: "unique_assignment")
+  @@map("task_assignments")
+}
+
+model WorkSubmission {
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id            String   @unique @db.Uuid
+  executor_id        String   @db.Uuid
+  submission_content String
+  submission_files   Json?    @db.JsonB
+  submitted_at       DateTime @default(now()) @db.Timestamptz(6)
+  revision_number    Int      @default(1)
+  is_final           Boolean  @default(false)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  version            Int      @default(1)
+
+  task               Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  executor           User     @relation(fields: [executor_id], references: [id], onDelete: Cascade)
+  reviews            Review[]
+
+  @@map("submissions")
+}
+
+model Review {
+  id                       String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id                  String        @unique @db.Uuid
+  submission_id            String        @db.Uuid
+  reviewer_id              String        @db.Uuid
+  outcome                  ReviewOutcome?
+  feedback                 String?
+  revision_request_details String?
+  reviewed_at              DateTime      @default(now()) @db.Timestamptz(6)
+  created_at               DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime      @default(now()) @db.Timestamptz(6)
+  version                  Int           @default(1)
+
+  task                     Task          @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  submission               WorkSubmission @relation(fields: [submission_id], references: [id], onDelete: Cascade)
+  reviewer                 User          @relation("Reviewer", fields: [reviewer_id], references: [id], onDelete: Restrict)
+
+  @@map("reviews")
+}
+
+model TaskReview {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id     String   @db.Uuid
+  reviewer_id String   @db.Uuid
+  reviewee_id String   @db.Uuid
+  rating      Int
+  comment     String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  task        Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  reviewer    User     @relation("TaskReviewer", fields: [reviewer_id], references: [id], onDelete: Restrict)
+  reviewee    User     @relation("TaskReviewee", fields: [reviewee_id], references: [id], onDelete: Cascade)
+
+  @@unique([task_id, reviewer_id, reviewee_id], name: "unique_task_review")
+  @@map("task_reviews")
+}
+
+model Wallet {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id        String   @unique @db.Uuid
+  balance        Decimal  @default(0) @db.Decimal(10, 2)
+  escrow_balance Decimal  @default(0) @db.Decimal(10, 2)
+  total_earned   Decimal  @default(0) @db.Decimal(10, 2)
+  total_spent    Decimal  @default(0) @db.Decimal(10, 2)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @db.Timestamptz(6)
+  version        Int      @default(1)
+
+  user           User     @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  transactions   WalletTransaction[]
+  escrow_locks   Escrow[] @relation("PosterWallet")
+  escrow_receives Escrow[] @relation("ExecutorWallet")
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id                    String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  wallet_id             String            @db.Uuid
+  user_id               String            @db.Uuid
+  transaction_type      TransactionType
+  status                TransactionStatus @default(pending)
+  amount                Decimal           @db.Decimal(10, 2)
+  balance_before        Decimal           @db.Decimal(10, 2)
+  balance_after         Decimal           @db.Decimal(10, 2)
+  escrow_balance_before Decimal?          @db.Decimal(10, 2)
+  escrow_balance_after  Decimal?          @db.Decimal(10, 2)
+  related_task_id       String?           @db.Uuid
+  related_escrow_id     String?           @db.Uuid
+  description           String?
+  metadata              Json?             @db.JsonB
+  processed_at          DateTime?         @db.Timestamptz(6)
+  created_at            DateTime          @default(now()) @db.Timestamptz(6)
+
+  wallet                Wallet            @relation(fields: [wallet_id], references: [id], onDelete: Restrict)
+  user                  User              @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  task                  Task?             @relation(fields: [related_task_id], references: [id], onDelete: SetNull)
+
+  @@map("wallet_transactions")
+}
+
+model Escrow {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id           String    @unique @db.Uuid
+  poster_wallet_id  String    @db.Uuid
+  amount            Decimal   @db.Decimal(10, 2)
+  locked_at         DateTime  @default(now()) @db.Timestamptz(6)
+  released_at       DateTime? @db.Timestamptz(6)
+  release_type      String?   @db.VarChar(50)
+  executor_wallet_id String?   @db.Uuid
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @db.Timestamptz(6)
+  version           Int       @default(1)
+
+  task              Task      @relation(fields: [task_id], references: [id], onDelete: Restrict)
+  poster_wallet     Wallet    @relation("PosterWallet", fields: [poster_wallet_id], references: [id], onDelete: Restrict)
+  executor_wallet   Wallet?   @relation("ExecutorWallet", fields: [executor_wallet_id], references: [id], onDelete: SetNull)
+
+  @@map("escrows")
+}
+
+model Dispute {
+  id                            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id                       String        @unique @db.Uuid
+  filed_by_user_id              String        @db.Uuid
+  dispute_type                  DisputeType
+  status                        DisputeStatus @default(pending)
+  description                   String
+  evidence                      Json?         @db.JsonB
+  auto_resolved                 Boolean       @default(false)
+  auto_resolution_reason        String?
+  assigned_admin_id             String?       @db.Uuid
+  admin_decision               String?
+  admin_decision_fund_allocation Json?         @db.JsonB
+  resolved_at                   DateTime?     @db.Timestamptz(6)
+  created_at                    DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at                    DateTime      @default(now()) @db.Timestamptz(6)
+  version                       Int           @default(1)
+
+  task                          Task          @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  filer                         User          @relation("DisputeFiler", fields: [filed_by_user_id], references: [id], onDelete: Restrict)
+  admin                         User?         @relation("DisputeAdmin", fields: [assigned_admin_id], references: [id], onDelete: SetNull)
+
+  @@map("disputes")
+}
+
+model ChatMessage {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id          String   @db.Uuid
+  sender_id        String   @db.Uuid
+  message_text     String
+  file_attachments Json?    @db.JsonB
+  sent_at          DateTime @default(now()) @db.Timestamptz(6)
+
+  task             Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  sender           User     @relation(fields: [sender_id], references: [id], onDelete: Restrict)
+
+  @@map("chat_messages")
+}
+
+model Notification {
+  id                      String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                 String           @db.Uuid
+  type                    String           @db.VarChar(50)
+  title                   String           @db.VarChar(255)
+  message                 String
+  related_task_id         String?          @db.Uuid
+  related_application_id  String?          @db.Uuid
+  is_read                 Boolean          @default(false)
+  read_at                 DateTime?        @db.Timestamptz(6)
+  created_at              DateTime         @default(now()) @db.Timestamptz(6)
+
+  user                    User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  task                    Task?            @relation(fields: [related_task_id], references: [id], onDelete: SetNull)
+  application             TaskApplication? @relation(fields: [related_application_id], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id     String?  @db.Uuid
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(50)
+  entity_id   String?  @db.Uuid
+  old_values   Json?    @db.JsonB
+  new_values   Json?    @db.JsonB
+  ip_address   String?  @db.Inet
+  user_agent   String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}

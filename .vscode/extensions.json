@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "anthropic.claude-code",
+    "dbaeumer.vscode-eslint",
+    "github.vscode-github-actions",
+    "github.vscode-github-actions",
+    "google.gemini-cli-vscode-ide-companion",
+    "vscode-icons-team.vscode-icons",
+    "msjsdiag.debugger-for-chrome",
+    "sst-dev.opencode",
+    "ritwickdey.liveserver",
+    "ms-vscode.live-server"
+  ]
+}
