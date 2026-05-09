@@ -23,7 +23,7 @@ export default async function AdminDisputesPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {(disputes ?? []).map((task) => (
+          {(disputes ?? []).map((task, index) => (
             <Card key={task.id} className="p-5 border-border">
               <div className="flex items-start justify-between gap-4">
                 <div>
