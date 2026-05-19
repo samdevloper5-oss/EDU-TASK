@@ -31,7 +31,7 @@ export default function SignInPage() {
           await fetch('/api/auth/resend-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, type: 'email_verify' }),
+            body: JSON.stringify({ email, type: 'signup' }),
           })
           router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
           return
@@ -66,8 +66,13 @@ export default function SignInPage() {
     }
   }
 
-  const fillDemo = () => {
-    setEmail('demo@demo.edutask.bd')
+  const fillDemoWorker = () => {
+    setEmail('tanvir@edutask.bd')
+    setPassword('Demo1234!')
+  }
+
+  const fillDemoPoster = () => {
+    setEmail('nadia@edutask.bd')
     setPassword('Demo1234!')
   }
 
@@ -146,12 +151,11 @@ export default function SignInPage() {
         </form>
 
         <div className="mt-4 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={fillDemo}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors text-center"
-          >
-            🎯 Try Demo Account
+          <button type="button" onClick={fillDemoWorker} className="text-xs text-muted-foreground hover:text-primary transition-colors text-center">
+            Load Demo Account (Worker)
+          </button>
+          <button type="button" onClick={fillDemoPoster} className="text-xs text-muted-foreground hover:text-primary transition-colors text-center">
+            Load Demo Account (Poster)
           </button>
         </div>
 

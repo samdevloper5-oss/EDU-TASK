@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('*, poster:users!tasks_poster_id_fkey(name, university, trust_score)')
+    .select('*, poster:users!tasks_poster_id_fkey(full_name, university_name, trust_score)')
     .eq('status', 'open')
     .order('created_at', { ascending: false })
     .limit(4)
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
-          Welcome back, {profile?.name?.split(' ')[0] ?? 'Student'}!
+          Welcome back, {profile?.full_name?.split(' ')[0] ?? 'Student'}!
         </h1>
         <p className="text-muted-foreground text-sm">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', year: 'numeric' })}
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
                 <h3 className="font-semibold text-sm mb-2 line-clamp-2">{task.title}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{task.poster?.name ?? 'Unknown'} · ⭐ {task.poster?.trust_score ?? 0}</span>
+                  <span className="text-muted-foreground">{task.poster?.full_name ?? 'Unknown'} · ⭐ {task.poster?.trust_score ?? 0}</span>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm font-bold text-primary">{task.budget?.toLocaleString()}৳</span>

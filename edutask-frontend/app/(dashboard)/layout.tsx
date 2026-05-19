@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
@@ -31,11 +33,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/onboarding')
   }
 
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
       <div className="md:ml-64">
         <TopBar />
+        {isDemoMode && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-2 text-center text-sm text-amber-800 dark:text-amber-200">
+            Demo mode — payments and balances are simulated. No real money is moved.
+          </div>
+        )}
         <main className="pb-20 md:pb-0">
           <div className="p-6 max-w-7xl mx-auto">
             {children}

@@ -88,10 +88,10 @@ export function Sidebar() {
         {user && (
           <div className="mt-4 flex items-center gap-3 px-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-              {user.name?.[0]?.toUpperCase() ?? 'U'}
+              {user.full_name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-sm font-medium truncate">{user.full_name}</p>
               <p className="text-xs text-muted-foreground truncate">⭐ {user.trust_score}</p>
             </div>
           </div>

@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server'
 import { resendOTPSchema } from '@/lib/validations/auth.schema'
-import { sendEmailVerificationOTP, sendPasswordResetOTP } from '@/lib/auth/otp'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown'
-  const rl = rateLimit(`resend-otp:${ip}`, 3, 15 * 60 * 1000)
-  if (!rl.ok) {
+  if (!rateLimitByIP(request, 'resend-otp', 3, 60 * 1000).ok) {
     return NextResponse.json(
-      { success: false, error: 'Too many requests. Please try again later.' },
+      { success: false, error: 'Please wait before requesting another code.' },
       { status: 429 }
     )
   }
@@ -18,46 +15,33 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = resendOTPSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { success: false, error: parsed.error.errors[0].message },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid email' }, { status: 400 })
   }
 
   const { email, type } = parsed.data
-
   const supabase = await createServerSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const normalizedEmail = email.toLowerCase().trim()
+  const resendType = type === 'signup' ? 'signup' : 'email_change'
 
-  if (user && user.email?.toLowerCase() !== email.toLowerCase()) {
+  const { error } = await supabase.auth.resend({
+    type: resendType,
+    email: normalizedEmail,
+  })
+
+  if (error) {
     return NextResponse.json(
-      { success: false, error: 'Unauthorized' },
-      { status: 403 }
-    )
-  }
-
-  const sendFn = type === 'email_verify' ? sendEmailVerificationOTP : sendPasswordResetOTP
-  const result = await sendFn(user?.id ?? '', email)
-
-  if (!result.success) {
-    return NextResponse.json(
-      { success: false, error: result.error ?? 'Failed to resend OTP' },
-      { status: 500 }
+      { success: false, error: 'Unable to resend code. Please try again.' },
+      { status: 400 }
     )
   }
 
   return NextResponse.json({
     success: true,
-    message: 'A new verification code has been sent to your email.',
+    message: 'New code sent to your email.',
   })
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Star, Shield, Award, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [bio, setBio] = useState('')
@@ -18,7 +18,11 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
-      const { data } = await supabase.from('users').select('*').eq('id', user.id).single()
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
       setProfile(data)
       setBio(data?.bio ?? '')
       setLoading(false)
@@ -27,10 +31,17 @@ export default function ProfilePage() {
   }, [supabase])
 
   const saveBio = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    await supabase.from('users').update({ bio }).eq('id', user.id)
-    setProfile((p: any) => ({ ...p, bio }))
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bio }),
+    })
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Failed to update bio')
+      return
+    }
+    setProfile(json.data)
     setEditingBio(false)
     toast.success('Bio updated')
   }
@@ -52,11 +63,11 @@ export default function ProfilePage() {
       <Card className="p-6 border-border">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl">
-            {profile?.name?.[0]?.toUpperCase() ?? 'U'}
+            {profile?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <div>
-            <h2 className="text-xl font-bold">{profile?.name}</h2>
-            <p className="text-sm text-muted-foreground">{profile?.university} · {profile?.department}</p>
+            <h2 className="text-xl font-bold">{profile?.full_name}</h2>
+            <p className="text-sm text-muted-foreground">{profile?.university_name} · {profile?.department}</p>
             <div className="flex items-center gap-2 mt-1">
               <Star className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-medium">{profile?.trust_score} {trustLabel}</span>

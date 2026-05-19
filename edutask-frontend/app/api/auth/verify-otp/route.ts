@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server'
 import { verifyOTPSchema } from '@/lib/validations/auth.schema'
-import { verifyOTP } from '@/lib/auth/otp'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown'
-  const rl = rateLimit(`verify-otp:${ip}`, 10, 15 * 60 * 1000)
-  if (!rl.ok) {
+  if (!rateLimitByIP(request, 'verify-otp', 10, 15 * 60 * 1000).ok) {
     return NextResponse.json(
       { success: false, error: 'Too many attempts. Please try again later.' },
       { status: 429 }
@@ -18,40 +16,43 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = verifyOTPSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { success: false, error: parsed.error.errors[0].message },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid OTP format' }, { status: 400 })
   }
 
-  const { email, otp, type } = parsed.data
-  const result = await verifyOTP(email, otp, type)
+  const { email, token, type } = parsed.data
+  const supabase = await createServerSupabaseClient()
 
-  if (!result.valid) {
-    return NextResponse.json(
-      { success: false, error: result.error, remaining: result.remaining ?? 0 },
-      { status: 400 }
-    )
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: email.toLowerCase().trim(),
+    token,
+    type,
+  })
+
+  if (error) {
+    const msg = error.message.toLowerCase()
+    const userMessage = msg.includes('expired')
+      ? 'Code has expired. Please request a new one.'
+      : msg.includes('invalid')
+        ? 'Invalid code. Please check and try again.'
+        : 'Verification failed. Please try again.'
+    return NextResponse.json({ success: false, error: userMessage }, { status: 400 })
   }
 
-  const userId = result.userId!
-
-  if (type === 'email_verify') {
-    await supabaseAdmin.from('users').update({ email_verified: true }).eq('id', userId)
-    await supabaseAdmin.auth.admin.updateUserById(userId, { email_confirm: true })
+  if (data.user && (type === 'signup' || type === 'email')) {
+    await supabaseAdmin
+      .from('users')
+      .update({ email_verified: true })
+      .eq('id', data.user.id)
   }
 
   return NextResponse.json({
     success: true,
-    type,
-    message: type === 'email_verify' ? 'Email verified successfully!' : 'OTP verified successfully!',
+    message: 'Email verified successfully!',
+    needsOnboarding: true,
   })
 }

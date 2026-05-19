@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
@@ -9,7 +9,7 @@ import { ClipboardList, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function MyTasksPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [tab, setTab] = useState<'posted' | 'applied' | 'active'>('posted')
   const [tasks, setTasks] = useState<any[]>([])
   const [applications, setApplications] = useState<any[]>([])
@@ -37,10 +37,29 @@ export default function MyTasksPage() {
   }, [supabase, tab])
 
   const handleHire = async (taskId: string, workerId: string) => {
-    const { error } = await supabase.from('tasks').update({ status: 'hired', hired_worker_id: workerId }).eq('id', taskId)
-    if (error) { toast.error(error.message); return }
+    const res = await fetch(`/api/tasks/${taskId}/hire`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ worker_id: workerId }),
+    })
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Failed to hire worker')
+      return
+    }
     toast.success('Worker hired!')
-    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: 'hired', hired_worker_id: workerId } : t))
+    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: 'in_progress', hired_worker_id: workerId } : t))
+  }
+
+  const handleAccept = async (taskId: string) => {
+    const res = await fetch(`/api/tasks/${taskId}/accept`, { method: 'POST' })
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Failed to accept work')
+      return
+    }
+    toast.success('Work accepted and payment released!')
+    setActiveTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: 'completed' } : t))
   }
 
   const tabs = [
@@ -128,9 +147,16 @@ export default function MyTasksPage() {
               <Card key={task.id} className="p-5 border-border">
                 <h3 className="font-semibold text-sm">{task.title}</h3>
                 <p className="text-xs text-muted-foreground mt-1">Status: <span className="capitalize font-medium text-primary">{task.status}</span></p>
-                <Link href={`/chat/${task.id}`}>
-                  <Button size="sm" variant="outline" className="mt-3">Open Chat</Button>
-                </Link>
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  <Link href={`/chat/${task.id}`}>
+                    <Button size="sm" variant="outline">Open Chat</Button>
+                  </Link>
+                  {task.status === 'under_review' && (
+                    <Button size="sm" onClick={() => handleAccept(task.id)} className="bg-emerald-500 text-white hover:bg-emerald-600">
+                      Accept Work
+                    </Button>
+                  )}
+                </div>
               </Card>
             ))}
           </div>

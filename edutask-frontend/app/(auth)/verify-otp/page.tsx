@@ -74,7 +74,7 @@ function VerifyOTPContent() {
   const email = searchParams.get('email') ?? ''
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
-  const [countdown, setCountdown] = useState(120)
+  const [countdown, setCountdown] = useState(60)
   const [errorShake, setErrorShake] = useState(false)
 
   useEffect(() => {
@@ -90,7 +90,7 @@ function VerifyOTPContent() {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, type: 'email_verify' }),
+        body: JSON.stringify({ email, token: otp, type: 'signup' }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -112,12 +112,12 @@ function VerifyOTPContent() {
       const res = await fetch('/api/auth/resend-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, type: 'email_verify' }),
+        body: JSON.stringify({ email, type: 'signup' }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       toast.success('A new code has been sent')
-      setCountdown(120)
+      setCountdown(60)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to resend')
     }

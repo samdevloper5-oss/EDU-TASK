@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Wallet, ArrowDownLeft, ArrowUpRight, Lock, TrendingUp, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+const DEMO_AMOUNTS = [100, 500, 1000, 2000, 5000]
+
 export default function WalletPage() {
-  const supabase = createClient()
-  const [profile, setProfile] = useState<any>(null)
+  const [wallet, setWallet] = useState<{ wallet_balance: number; escrow_balance: number; total_earned: number } | null>(null)
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [depositAmount, setDepositAmount] = useState('')
@@ -20,95 +20,106 @@ export default function WalletPage() {
   const [phone, setPhone] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
-      const [{ data: prof }, { data: txs }] = await Promise.all([
-        supabase.from('users').select('*').eq('id', user.id).single(),
-        supabase.from('transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      ])
-      setProfile(prof)
-      setTransactions(txs ?? [])
-      setPhone(prof?.bkash_number ?? prof?.phone ?? '')
-      setLoading(false)
+  const loadWallet = async () => {
+    const [walletRes, txRes] = await Promise.all([
+      fetch('/api/wallet'),
+      fetch('/api/wallet/transactions?limit=50'),
+    ])
+    const walletJson = await walletRes.json()
+    const txJson = await txRes.json()
+
+    if (walletJson.success) {
+      setWallet(walletJson.data)
     }
-    fetchData()
-  }, [supabase])
+    if (txJson.success) {
+      setTransactions(txJson.data ?? [])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadWallet()
+  }, [])
+
+  const handleDemoDeposit = async (amount: number) => {
+    setActionLoading(true)
+    const res = await fetch('/api/wallet/deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, method: 'demo' }),
+    })
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Deposit failed')
+      setActionLoading(false)
+      return
+    }
+    setWallet({
+      wallet_balance: json.data.wallet_balance,
+      escrow_balance: json.data.escrow_balance,
+      total_earned: json.data.total_earned,
+    })
+    if (json.data.transaction) {
+      setTransactions((prev) => [json.data.transaction, ...prev])
+    }
+    toast.success(`Deposited ${amount} BDT successfully!`)
+    setActionLoading(false)
+  }
 
   const handleDeposit = async () => {
     const amount = Number(depositAmount)
     if (!amount || amount < 100) { toast.error('Minimum deposit is 100 BDT'); return }
     setActionLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast.error('Not authenticated'); setActionLoading(false); return }
-
-    // Simulate 2s processing
-    await new Promise((r) => setTimeout(r, 1500))
-
-    const { error: txError } = await supabase.from('transactions').insert({
-      user_id: user.id,
-      type: 'deposit',
-      amount,
-      fee: 0,
-      net_amount: amount,
-      method,
-      status: 'completed',
-      notes: `Deposit via ${method}`,
+    const res = await fetch('/api/wallet/deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, method }),
     })
-
-    if (txError) { toast.error(txError.message); setActionLoading(false); return }
-
-    const { error: updateError } = await supabase.from('users').update({
-      wallet_balance: (profile?.wallet_balance ?? 0) + amount,
-    }).eq('id', user.id)
-
-    if (updateError) { toast.error(updateError.message); setActionLoading(false); return }
-
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Deposit failed')
+      setActionLoading(false)
+      return
+    }
+    setWallet({
+      wallet_balance: json.data.wallet_balance,
+      escrow_balance: json.data.escrow_balance,
+      total_earned: json.data.total_earned,
+    })
+    if (json.data.transaction) {
+      setTransactions((prev) => [json.data.transaction, ...prev])
+    }
     toast.success(`Deposited ${amount} BDT successfully!`)
-    setProfile((p: any) => ({ ...p, wallet_balance: (p?.wallet_balance ?? 0) + amount }))
     setDepositAmount('')
-    setTransactions((prev) => [{
-      id: Date.now(),
-      type: 'deposit',
-      amount,
-      status: 'completed',
-      created_at: new Date().toISOString(),
-      notes: `Deposit via ${method}`,
-    }, ...prev])
     setActionLoading(false)
   }
 
   const handleWithdraw = async () => {
     const amount = Number(withdrawAmount)
     if (!amount || amount < 100) { toast.error('Minimum withdrawal is 100 BDT'); return }
-    if (amount > (profile?.wallet_balance ?? 0)) { toast.error('Insufficient balance'); return }
+    if (!phone.match(/^01[3-9]\d{8}$/)) { toast.error('Enter a valid Bangladesh phone number'); return }
+    if (amount > (wallet?.wallet_balance ?? 0)) { toast.error('Insufficient balance'); return }
     setActionLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast.error('Not authenticated'); setActionLoading(false); return }
-
-    await new Promise((r) => setTimeout(r, 1500))
-
-    const fee = Math.round(amount * 0.08)
-    const net = amount - fee
-
-    await supabase.from('transactions').insert({
-      user_id: user.id,
-      type: 'withdrawal',
-      amount,
-      fee,
-      net_amount: net,
-      method,
-      status: 'completed',
-      notes: `Withdrawal to ${method} ${phone}`,
+    const res = await fetch('/api/wallet/withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, method, phone }),
     })
-
-    await supabase.from('users').update({
-      wallet_balance: (profile?.wallet_balance ?? 0) - amount,
-    }).eq('id', user.id)
-
-    toast.success(`Withdrew ${net} BDT (${fee} BDT fee)`)
-    setProfile((p: any) => ({ ...p, wallet_balance: (p?.wallet_balance ?? 0) - amount }))
+    const json = await res.json()
+    if (!json.success) {
+      toast.error(json.error ?? 'Withdrawal failed')
+      setActionLoading(false)
+      return
+    }
+    setWallet({
+      wallet_balance: json.data.wallet_balance,
+      escrow_balance: json.data.escrow_balance,
+      total_earned: json.data.total_earned,
+    })
+    if (json.data.transaction) {
+      setTransactions((prev) => [json.data.transaction, ...prev])
+    }
+    toast.success('Withdrawal submitted!')
     setWithdrawAmount('')
     setActionLoading(false)
   }
@@ -125,19 +136,36 @@ export default function WalletPage() {
         <Card className="p-5 border-border text-center">
           <Wallet className="w-5 h-5 mx-auto mb-2 text-primary" />
           <p className="text-xs text-muted-foreground">Available</p>
-          <p className="text-xl font-bold">{(profile?.wallet_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-xl font-bold">{(wallet?.wallet_balance ?? 0).toLocaleString()}৳</p>
         </Card>
         <Card className="p-5 border-border text-center">
           <Lock className="w-5 h-5 mx-auto mb-2 text-amber-500" />
           <p className="text-xs text-muted-foreground">In Escrow</p>
-          <p className="text-xl font-bold">{(profile?.escrow_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-xl font-bold">{(wallet?.escrow_balance ?? 0).toLocaleString()}৳</p>
         </Card>
         <Card className="p-5 border-border text-center">
           <TrendingUp className="w-5 h-5 mx-auto mb-2 text-emerald-500" />
           <p className="text-xs text-muted-foreground">Total Earned</p>
-          <p className="text-xl font-bold">{(profile?.total_earned ?? 0).toLocaleString()}৳</p>
+          <p className="text-xl font-bold">{(wallet?.total_earned ?? 0).toLocaleString()}৳</p>
         </Card>
       </div>
+
+      <Card className="p-5 border-border">
+        <h3 className="font-semibold mb-3">Quick demo deposit</h3>
+        <div className="flex flex-wrap gap-2">
+          {DEMO_AMOUNTS.map((amount) => (
+            <Button
+              key={amount}
+              variant="outline"
+              size="sm"
+              disabled={actionLoading}
+              onClick={() => handleDemoDeposit(amount)}
+            >
+              +{amount}৳
+            </Button>
+          ))}
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-5 border-border">
@@ -149,14 +177,10 @@ export default function WalletPage() {
             </div>
             <div>
               <Label className="text-xs">Method</Label>
-              <select value={method} onChange={(e) => setMethod(e.target.value as any)} className="w-full mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm">
+              <select value={method} onChange={(e) => setMethod(e.target.value as 'bkash' | 'nagad')} className="w-full mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm">
                 <option value="bkash">bKash</option>
                 <option value="nagad">Nagad</option>
               </select>
-            </div>
-            <div>
-              <Label className="text-xs">Phone Number</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" className="mt-1" />
             </div>
             <Button onClick={handleDeposit} disabled={actionLoading} className="w-full bg-emerald-500 text-white hover:bg-emerald-600">
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Deposit'}
@@ -173,7 +197,7 @@ export default function WalletPage() {
             </div>
             <div>
               <Label className="text-xs">Method</Label>
-              <select value={method} onChange={(e) => setMethod(e.target.value as any)} className="w-full mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm">
+              <select value={method} onChange={(e) => setMethod(e.target.value as 'bkash' | 'nagad')} className="w-full mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm">
                 <option value="bkash">bKash</option>
                 <option value="nagad">Nagad</option>
               </select>

@@ -8,7 +8,7 @@ export default async function AdminUsersPage() {
 
   const { data: users } = await supabase
     .from('users')
-    .select('id, name, email, university, trust_score, completed_tasks, is_banned, created_at')
+    .select('id, full_name, email, university_name, trust_score, completed_tasks, is_banned, created_at')
     .order('created_at', { ascending: false })
 
   return (
@@ -32,10 +32,10 @@ export default async function AdminUsersPage() {
               {(users ?? []).map((u) => (
                 <tr key={u.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
-                    <p className="font-medium">{u.name}</p>
+                    <p className="font-medium">{u.full_name}</p>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.university}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{u.university_name}</td>
                   <td className="px-4 py-3 font-medium">{u.trust_score}</td>
                   <td className="px-4 py-3">{u.completed_tasks}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>

@@ -56,11 +56,11 @@ function ResetOTPContent() {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, type: 'password_reset' }),
+        body: JSON.stringify({ email, token: otp, type: 'recovery' }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Invalid OTP')
-      sessionStorage.setItem('pw_reset_verified', JSON.stringify({ email, timestamp: Date.now() }))
+      sessionStorage.setItem('pw_reset_verified', JSON.stringify({ email, token: otp, timestamp: Date.now() }))
       router.push('/reset-password')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Verification failed')

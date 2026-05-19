@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 export default function ResetPasswordPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
+  const [token, setToken] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,6 +28,7 @@ export default function ResetPasswordPage() {
       return
     }
     setEmail(parsed.email)
+    setToken(parsed.token ?? '')
   }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +43,7 @@ export default function ResetPasswordPage() {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword }),
+        body: JSON.stringify({ email, token, newPassword }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Reset failed')
@@ -66,10 +67,6 @@ export default function ResetPasswordPage() {
         <p className="text-muted-foreground text-sm mb-8">Create a new password for your account</p>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <Label>Reset Code</Label>
-            <Input value={otp} onChange={(e) => setOtp(e.target.value)} required className="mt-1.5" placeholder="6-digit code" maxLength={6} />
-          </div>
-          <div>
             <Label>New Password</Label>
             <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required className="mt-1.5" placeholder="Min 8 chars, uppercase, number" />
           </div>
@@ -77,7 +74,7 @@ export default function ResetPasswordPage() {
             <Label>Confirm New Password</Label>
             <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="mt-1.5" placeholder="Re-enter password" />
           </div>
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading || !otp || !newPassword || !confirmPassword}>
+          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading || !token || !newPassword || !confirmPassword}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reset Password'}
           </Button>
         </form>

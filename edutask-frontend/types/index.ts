@@ -6,6 +6,7 @@ export type TaskCategory =
   | 'Data Entry'
   | 'Translation'
   | 'Media'
+  | 'Academic Help'
   | 'Other'
 
 export type TaskStatus =
@@ -25,54 +26,56 @@ export type TransactionType =
   | 'earning'
   | 'platform_fee'
   | 'refund'
+  | 'referral_bonus'
 
 export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'reversed'
 
 export type NotificationType =
   | 'task_applied'
   | 'task_hired'
-  | 'work_submitted'
+  | 'task_submitted'
+  | 'task_accepted'
+  | 'task_revision'
+  | 'task_disputed'
+  | 'task_resolved'
+  | 'escrow_locked'
   | 'escrow_released'
-  | 'new_message'
   | 'review_received'
-  | 'dispute_opened'
-  | 'dispute_resolved'
+  | 'message'
   | 'id_verified'
   | 'id_rejected'
+  | 'leaderboard'
   | 'system'
-
-export type OTPType = 'email_verify' | 'password_reset'
 
 export interface User {
   id: string
   email: string
   email_verified: boolean
   profile_complete: boolean
-  name: string
-  phone: string
-  university: string
+  full_name: string
+  phone: string | null
+  university_name: string
   department: string
   student_id_text: string
-  student_id_image_url?: string
+  student_id_image_url?: string | null
   student_id_verified: boolean
-  profile_photo_url?: string
+  profile_photo_url?: string | null
   bio: string
   location: string
   skills: string[]
   trust_score: number
   completed_tasks: number
+  total_reviews: number
+  average_rating?: number | null
   wallet_balance: number
   escrow_balance: number
   total_earned: number
-  referral_code: string
-  referred_by?: string
-  bkash_number?: string
-  nagad_number?: string
+  referral_code: string | null
+  referred_by?: string | null
+  bkash_number?: string | null
+  nagad_number?: string | null
   is_banned: boolean
   is_admin: boolean
-  remember_me: boolean
-  last_sign_in_at?: string
-  password_reset_at?: string
   created_at: string
   updated_at: string
 }
@@ -89,15 +92,15 @@ export interface Task {
   budget: number
   deadline: string
   required_skills: string[]
-  location?: string
+  location?: string | null
   status: TaskStatus
-  hired_worker_id?: string
+  hired_worker_id?: string | null
   hired_worker?: User
   escrow_deposited: boolean
   revisions_used: number
   applicant_count: number
-  submitted_at?: string
-  completed_at?: string
+  submitted_at?: string | null
+  completed_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -109,7 +112,7 @@ export interface Application {
   worker_id: string
   worker?: User
   proposal: string
-  estimated_hours?: number
+  estimated_hours?: number | null
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
   created_at: string
 }
@@ -121,22 +124,24 @@ export interface Transaction {
   amount: number
   fee: number
   net_amount: number
-  method?: 'bkash' | 'nagad' | 'wallet'
+  method?: 'bkash' | 'nagad' | 'demo' | 'wallet' | null
   status: TransactionStatus
-  reference_id?: string
-  external_ref?: string
-  notes?: string
+  reference_id?: string | null
+  counterparty_id?: string | null
+  external_ref?: string | null
+  notes?: string | null
   created_at: string
 }
 
 export interface Message {
   id: string
   task_id: string
-  sender_id: string
+  sender_id: string | null
   sender?: User
   content: string
-  file_url?: string
-  file_name?: string
+  message_type?: 'text' | 'file' | 'system'
+  file_url?: string | null
+  file_name?: string | null
   is_system_message: boolean
   flagged: boolean
   created_at: string
@@ -159,19 +164,10 @@ export interface Notification {
   title: string
   message: string
   is_read: boolean
-  link?: string
-  reference_id?: string
+  link?: string | null
+  reference_id?: string | null
+  actor_id?: string | null
   created_at: string
 }
 
-export interface OTPCode {
-  id: string
-  user_id: string
-  email: string
-  otp: string
-  type: OTPType
-  expires_at: string
-  used: boolean
-  attempts: number
-  created_at: string
-}
+export type { Database } from './database'

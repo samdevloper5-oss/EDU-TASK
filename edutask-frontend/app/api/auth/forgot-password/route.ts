@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
 import { forgotPasswordSchema } from '@/lib/validations/auth.schema'
-import { sendPasswordResetOTP } from '@/lib/auth/otp'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { rateLimit } from '@/lib/rate-limit'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown'
-  const rl = rateLimit(`forgot-password:${ip}`, 3, 15 * 60 * 1000)
-  if (!rl.ok) {
+  if (!rateLimitByIP(request, 'forgot-password', 3, 15 * 60 * 1000).ok) {
     return NextResponse.json(
       { success: false, error: 'Too many requests. Please try again later.' },
       { status: 429 }
@@ -18,10 +15,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = forgotPasswordSchema.safeParse(body)
@@ -32,22 +26,15 @@ export async function POST(request: Request) {
     )
   }
 
-  const { email } = parsed.data
-  const normalizedEmail = email.toLowerCase().trim()
+  const supabase = await createServerSupabaseClient()
+  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/reset-password`
 
-  // Always return same response to prevent email enumeration
-  const standardResponse = {
+  await supabase.auth.resetPasswordForEmail(parsed.data.email.toLowerCase().trim(), {
+    redirectTo,
+  })
+
+  return NextResponse.json({
     success: true,
     message: 'If that email exists, a reset code was sent.',
-  }
-
-  // Look up user
-  const { data: usersData } = await supabaseAdmin.auth.admin.listUsers()
-  const foundUser = usersData?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail)
-
-  if (foundUser) {
-    await sendPasswordResetOTP(foundUser.id, normalizedEmail)
-  }
-
-  return NextResponse.json(standardResponse)
+  })
 }

@@ -1,30 +1,16 @@
 import { NextResponse } from 'next/server'
 import { completeProfileSchema } from '@/lib/validations/auth.schema'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { requireAuth } from '@/lib/api-auth'
+import { sanitizeText } from '@/lib/utils'
 
 export async function POST(request: Request) {
-  try {
-    const supabase = await createServerSupabaseClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+  const { user, profile } = await requireAuth()
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-  // Check email verified
-  const { data: profileCheck } = await supabaseAdmin
-    .from('users')
-    .select('email_verified')
-    .eq('id', user.id)
-    .single()
-
-  if (!profileCheck?.email_verified) {
+  if (!profile?.email_verified) {
     return NextResponse.json(
       { success: false, error: 'Email must be verified before completing profile.' },
       { status: 403 }
@@ -35,10 +21,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = completeProfileSchema.safeParse(body)
@@ -50,36 +33,27 @@ export async function POST(request: Request) {
   }
 
   const { name, phone, university, department, student_id_text, location, skills, referral_code } = parsed.data
+  const sanitizedLocation = location ? sanitizeText(location) : ''
+  const sanitizedSkills = skills.map((skill) => sanitizeText(skill))
 
-  // Explicit allowlist update
   const { error: updateError } = await supabaseAdmin
     .from('users')
     .update({
-      name,
+      full_name: name,
       phone,
-      university,
+      university_name: university,
       department,
       student_id_text,
-      location: location ?? null,
-      skills,
+      location: sanitizedLocation,
+      skills: sanitizedSkills,
       profile_complete: true,
       referred_by: referral_code || null,
     })
     .eq('id', user.id)
 
   if (updateError) {
-    return NextResponse.json(
-      { success: false, error: updateError.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Failed to update profile' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Profile completion error:', error)
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
 }

@@ -12,13 +12,13 @@ export const registerSchema = z.object({
 
 export const verifyOTPSchema = z.object({
   email: z.string().email(),
-  otp: z.string().length(6, 'OTP must be 6 digits'),
-  type: z.enum(['email_verify', 'password_reset']),
+  token: z.string().length(6, 'OTP must be 6 digits'),
+  type: z.enum(['signup', 'email', 'recovery']).default('signup'),
 })
 
 export const resendOTPSchema = z.object({
   email: z.string().email(),
-  type: z.enum(['email_verify', 'password_reset']),
+  type: z.enum(['signup', 'email', 'recovery']).default('signup'),
 })
 
 export const forgotPasswordSchema = z.object({
@@ -27,7 +27,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   email: z.string().email(),
-  otp: z.string().length(6),
+  token: z.string().length(6),
   newPassword: z
     .string()
     .min(8, 'Password must be at least 8 characters')

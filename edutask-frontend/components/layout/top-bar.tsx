@@ -1,25 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Bell, LogOut, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
-
 export function TopBar() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [showDropdown, setShowDropdown] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ full_name?: string } | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser()
       if (!authUser) return
-      const { data: profile } = await supabase.from('users').select('name').eq('id', authUser.id).single()
+      const { data: profile } = await supabase.from('users').select('full_name').eq('id', authUser.id).single()
       setUser(profile)
 
       const { data: notifs } = await supabase
@@ -106,7 +104,7 @@ export function TopBar() {
 
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-            {user?.name?.[0]?.toUpperCase() ?? 'U'}
+            {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <button onClick={handleSignOut} className="p-2 rounded-xl hover:bg-muted transition-colors md:hidden">
             <LogOut className="w-5 h-5 text-muted-foreground" />

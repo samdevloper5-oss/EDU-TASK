@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,8 +12,6 @@ import { toast } from 'sonner'
 
 export default function TaskDetailPage() {
   const params = useParams()
-  const router = useRouter()
-  const supabase = createClient()
   const taskId = params.id as string
 
   const [task, setTask] = useState<any>(null)
@@ -27,43 +24,40 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     const fetchTask = async () => {
-      const { data } = await supabase
-        .from('tasks')
-        .select('*, poster:users!tasks_poster_id_fkey(name, university, trust_score, email)')
-        .eq('id', taskId)
-        .single()
-      setTask(data)
-      setLoading(false)
-
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && data) {
-        const { data: appData } = await supabase
-          .from('applications')
-          .select('id')
-          .eq('task_id', taskId)
-          .eq('worker_id', user.id)
-          .single()
-        if (appData) setApplied(true)
+      const res = await fetch(`/api/tasks/${taskId}`)
+      const json = await res.json()
+      if (!json.success) {
+        setTask(null)
+        setLoading(false)
+        return
       }
+      const data = json.data
+      setTask(data)
+      setApplied((data.applications ?? []).length > 0)
+      setLoading(false)
     }
     fetchTask()
-  }, [supabase, taskId])
+  }, [taskId])
 
   const handleApply = async () => {
     if (!proposal || proposal.length < 20) { toast.error('Proposal must be at least 20 characters'); return }
     setSubmitting(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast.error('Please sign in'); setSubmitting(false); return }
 
-    const { error } = await supabase.from('applications').insert({
-      task_id: taskId,
-      worker_id: user.id,
-      proposal,
-      estimated_hours: estimatedHours ? Number(estimatedHours) : null,
-      status: 'pending',
+    const res = await fetch(`/api/tasks/${taskId}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        proposal,
+        estimated_hours: estimatedHours ? Number(estimatedHours) : undefined,
+      }),
     })
+    const json = await res.json()
 
-    if (error) { toast.error(error.message); setSubmitting(false); return }
+    if (!json.success) {
+      toast.error(json.error ?? 'Failed to apply')
+      setSubmitting(false)
+      return
+    }
 
     toast.success('Application submitted!')
     setApplied(true)
@@ -115,8 +109,8 @@ export default function TaskDetailPage() {
 
         <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium">Posted by {task.poster?.name ?? 'Unknown'}</p>
-            <p className="text-xs text-muted-foreground">{task.poster?.university} · ⭐ {task.poster?.trust_score ?? 0}</p>
+            <p className="text-sm font-medium">Posted by {task.poster?.full_name ?? 'Unknown'}</p>
+            <p className="text-xs text-muted-foreground">{task.poster?.university_name} · ⭐ {task.poster?.trust_score ?? 0}</p>
           </div>
           {applied ? (
             <Button disabled variant="outline" className="text-emerald-500 border-emerald-500/30">Applied ✓</Button>

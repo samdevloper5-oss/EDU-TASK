@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,11 +9,10 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
-const categories = ['Design', 'Coding', 'Research', 'Writing', 'Data Entry', 'Translation', 'Media', 'Other']
+const categories = ['Design', 'Coding', 'Research', 'Writing', 'Data Entry', 'Translation', 'Media', 'Academic Help', 'Other']
 
 export default function PostTaskPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('Coding')
@@ -34,28 +32,23 @@ export default function PostTaskPage() {
 
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { toast.error('Please sign in'); return }
-
-      const { error } = await supabase.from('tasks').insert({
-        poster_id: user.id,
-        title,
-        description,
-        category,
-        task_mode: taskMode,
-        task_type: 'paid',
-        budget: numBudget,
-        deadline: new Date(deadline).toISOString(),
-        required_skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
-        status: 'open',
-        escrow_deposited: false,
-        revisions_used: 0,
-        applicant_count: 0,
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          category,
+          task_mode: taskMode,
+          budget: numBudget,
+          deadline: new Date(deadline).toISOString(),
+          required_skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
+        }),
       })
-
-      if (error) throw new Error(error.message)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to post task')
       toast.success('Task posted successfully!')
-      router.push('/my-tasks?tab=posted')
+      router.push('/my-tasks')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to post task')
     } finally {

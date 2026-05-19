@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
 import { resetPasswordSchema } from '@/lib/validations/auth.schema'
-import { verifyOTP } from '@/lib/auth/otp'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { rateLimit } from '@/lib/rate-limit'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown'
-  const rl = rateLimit(`reset-password:${ip}`, 5, 15 * 60 * 1000)
-  if (!rl.ok) {
+  if (!rateLimitByIP(request, 'reset-password', 5, 15 * 60 * 1000).ok) {
     return NextResponse.json(
       { success: false, error: 'Too many requests. Please try again later.' },
       { status: 429 }
@@ -18,10 +15,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json(
-      { success: false, error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = resetPasswordSchema.safeParse(body)
@@ -32,30 +26,30 @@ export async function POST(request: Request) {
     )
   }
 
-  const { email, otp, newPassword } = parsed.data
+  const { email, token, newPassword } = parsed.data
+  const supabase = await createServerSupabaseClient()
 
-  const result = await verifyOTP(email, otp, 'password_reset')
-  if (!result.valid) {
+  const { error: verifyError } = await supabase.auth.verifyOtp({
+    email: email.toLowerCase().trim(),
+    token,
+    type: 'recovery',
+  })
+
+  if (verifyError) {
     return NextResponse.json(
-      { success: false, error: result.error },
+      { success: false, error: 'Invalid or expired reset code.' },
       { status: 400 }
     )
   }
 
-  const userId = result.userId!
-
-  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-    password: newPassword,
-  })
+  const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
 
   if (updateError) {
     return NextResponse.json(
-      { success: false, error: updateError.message },
+      { success: false, error: 'Unable to update password. Please try again.' },
       { status: 500 }
     )
   }
-
-  await supabaseAdmin.from('users').update({ password_reset_at: new Date().toISOString() }).eq('id', userId)
 
   return NextResponse.json({
     success: true,

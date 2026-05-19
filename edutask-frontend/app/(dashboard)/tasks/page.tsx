@@ -2,17 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Search, Filter } from 'lucide-react'
 import { toast } from 'sonner'
 
 const categories = ['All', 'Design', 'Coding', 'Research', 'Writing', 'Data Entry', 'Translation', 'Media', 'Other']
 
 export default function TasksPage() {
-  const supabase = createClient()
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -20,26 +17,23 @@ export default function TasksPage() {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      let query = supabase
-        .from('tasks')
-        .select('*, poster:users!tasks_poster_id_fkey(name, university, trust_score)')
-        .eq('status', 'open')
-        .order('created_at', { ascending: false })
+      setLoading(true)
+      const params = new URLSearchParams({ limit: '50' })
+      if (activeCategory !== 'All') params.set('category', activeCategory)
+      if (search.trim()) params.set('search', search.trim())
 
-      if (activeCategory !== 'All') {
-        query = query.eq('category', activeCategory)
-      }
-
-      const { data, error } = await query
-      if (error) {
-        toast.error('Failed to load tasks')
+      const res = await fetch(`/api/tasks?${params}`)
+      const json = await res.json()
+      if (!json.success) {
+        toast.error(json.error ?? 'Failed to load tasks')
+        setTasks([])
       } else {
-        setTasks(data ?? [])
+        setTasks(json.data ?? [])
       }
       setLoading(false)
     }
     fetchTasks()
-  }, [supabase, activeCategory])
+  }, [activeCategory, search])
 
   const filtered = tasks.filter((t) =>
     t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -97,7 +91,7 @@ export default function TasksPage() {
                 <h3 className="font-semibold text-sm mb-2 line-clamp-2">{task.title}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                  <span>{task.poster?.name ?? 'Unknown'} · ⭐ {task.poster?.trust_score ?? 0}</span>
+                  <span>{task.poster?.full_name ?? 'Unknown'} · ⭐ {task.poster?.trust_score ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-primary">{task.budget?.toLocaleString()}৳</span>

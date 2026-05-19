@@ -13,7 +13,12 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/use-scroll-animation'
-import { leaderboardTrust } from '@/lib/mock-data'
+
+const leaderboardPreview = [
+  { name: 'Priya Sharma', university: 'Dhaka University', score: 95 },
+  { name: 'Tanvir Ahmed', university: 'NSU', score: 87 },
+  { name: 'Nadia Islam', university: 'BRAC University', score: 64 },
+]
 
 function AnimatedSection({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const [ref, isVisible] = useScrollAnimation()
@@ -326,12 +331,12 @@ export function LandingPage() {
             <AnimatedSection delay={200} className="flex-1">
               <Card className="p-6 text-center border-border bg-card hover:shadow-lg transition-all duration-300">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center mx-auto mb-3 ring-3 ring-slate-300 shadow-sm">
-                  <span className="font-bold text-slate-600">{leaderboardTrust[1].name[0]}</span>
+                  <span className="font-bold text-slate-600">{leaderboardPreview[1].name[0]}</span>
                 </div>
                 <div className="text-xs font-bold text-slate-500 mb-1">2nd</div>
-                <p className="text-sm font-semibold text-foreground">{leaderboardTrust[1].name}</p>
-                <p className="text-xs text-muted-foreground">{leaderboardTrust[1].university}</p>
-                <div className="mt-2 text-xl font-bold text-primary">{leaderboardTrust[1].score}</div>
+                <p className="text-sm font-semibold text-foreground">{leaderboardPreview[1].name}</p>
+                <p className="text-xs text-muted-foreground">{leaderboardPreview[1].university}</p>
+                <div className="mt-2 text-xl font-bold text-primary">{leaderboardPreview[1].score}</div>
               </Card>
             </AnimatedSection>
             {/* Rank 1 */}
@@ -341,23 +346,23 @@ export function LandingPage() {
                   1st
                 </div>
                 <div className="w-18 h-18 w-[72px] h-[72px] rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center mx-auto mb-3 ring-4 ring-amber-300 shadow-lg mt-2">
-                  <span className="font-bold text-white text-lg">{leaderboardTrust[0].name[0]}</span>
+                  <span className="font-bold text-white text-lg">{leaderboardPreview[0].name[0]}</span>
                 </div>
-                <p className="text-base font-bold text-foreground">{leaderboardTrust[0].name}</p>
-                <p className="text-xs text-muted-foreground">{leaderboardTrust[0].university}</p>
-                <div className="mt-2 text-2xl font-bold text-primary">{leaderboardTrust[0].score}</div>
+                <p className="text-base font-bold text-foreground">{leaderboardPreview[0].name}</p>
+                <p className="text-xs text-muted-foreground">{leaderboardPreview[0].university}</p>
+                <div className="mt-2 text-2xl font-bold text-primary">{leaderboardPreview[0].score}</div>
               </Card>
             </AnimatedSection>
             {/* Rank 3 */}
             <AnimatedSection delay={300} className="flex-1">
               <Card className="p-6 text-center border-border bg-card hover:shadow-lg transition-all duration-300">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 flex items-center justify-center mx-auto mb-3 ring-3 ring-amber-300/60 shadow-sm">
-                  <span className="font-bold text-amber-800">{leaderboardTrust[2].name[0]}</span>
+                  <span className="font-bold text-amber-800">{leaderboardPreview[2].name[0]}</span>
                 </div>
                 <div className="text-xs font-bold text-amber-700 mb-1">3rd</div>
-                <p className="text-sm font-semibold text-foreground">{leaderboardTrust[2].name}</p>
-                <p className="text-xs text-muted-foreground">{leaderboardTrust[2].university}</p>
-                <div className="mt-2 text-xl font-bold text-primary">{leaderboardTrust[2].score}</div>
+                <p className="text-sm font-semibold text-foreground">{leaderboardPreview[2].name}</p>
+                <p className="text-xs text-muted-foreground">{leaderboardPreview[2].university}</p>
+                <div className="mt-2 text-xl font-bold text-primary">{leaderboardPreview[2].score}</div>
               </Card>
             </AnimatedSection>
           </div>

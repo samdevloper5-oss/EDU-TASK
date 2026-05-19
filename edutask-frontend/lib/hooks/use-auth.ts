@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
@@ -8,7 +8,7 @@ import type { User } from '@/types'
 
 export function useAuth() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { user, isLoading, isEmailVerified, isProfileComplete, setUser, setLoading, clearAuth } = useAuthStore()
 
   useEffect(() => {

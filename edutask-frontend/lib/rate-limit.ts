@@ -1,4 +1,4 @@
-// In-memory rate limiter. For production replace with Upstash Redis.
+// In-memory rate limiter — resets on Vercel cold starts. Use Upstash Redis in production.
 
 interface RateLimitEntry {
   count: number
@@ -38,3 +38,17 @@ setInterval(() => {
     }
   }
 }, 300000)
+
+export function rateLimitByIP(
+  request: Request,
+  endpoint: string,
+  maxPerWindow: number,
+  windowMs: number
+) {
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'anonymous'
+
+  return rateLimit(`${endpoint}:${ip}`, maxPerWindow, windowMs)
+}

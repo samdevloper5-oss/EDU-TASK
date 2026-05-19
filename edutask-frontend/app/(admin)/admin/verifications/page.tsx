@@ -8,7 +8,7 @@ export default async function AdminVerificationsPage() {
 
   const { data: pending } = await supabase
     .from('users')
-    .select('id, name, university, student_id_image_url, created_at')
+    .select('id, full_name, university_name, student_id_image_url, created_at')
     .eq('student_id_verified', false)
     .not('student_id_image_url', 'is', null)
     .order('created_at', { ascending: false })
@@ -28,8 +28,8 @@ export default async function AdminVerificationsPage() {
             <Card key={u.id} className="p-5 border-border">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold">{u.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{u.university}</p>
+                  <h3 className="font-semibold">{u.full_name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{u.university_name}</p>
                   <p className="text-xs text-muted-foreground mt-1">Submitted: {new Date(u.created_at).toLocaleDateString()}</p>
                   {u.student_id_image_url && (
                     <a href={u.student_id_image_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline mt-2 inline-block">

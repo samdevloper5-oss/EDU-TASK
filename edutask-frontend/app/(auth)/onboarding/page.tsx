@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -58,7 +58,7 @@ function SkillTagInput({ skills, onAdd, onRemove }: { skills: string[]; onAdd: (
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')

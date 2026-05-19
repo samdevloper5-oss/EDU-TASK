@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { User } from '@/types'
 
 interface AuthState {
@@ -53,21 +53,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'edutask-auth-v2',
-      storage: {
-        getItem: (name) => {
-          if (typeof window === 'undefined') return null
-          const str = sessionStorage.getItem(name)
-          return str ? JSON.parse(str) : null
-        },
-        setItem: (name, value) => {
-          if (typeof window === 'undefined') return
-          sessionStorage.setItem(name, JSON.stringify(value))
-        },
-        removeItem: (name) => {
-          if (typeof window === 'undefined') return
-          sessionStorage.removeItem(name)
-        },
-      },
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         isEmailVerified: state.isEmailVerified,
