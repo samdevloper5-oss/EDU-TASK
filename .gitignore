@@ -1,3 +1,38 @@
 node_modules
 .vercel
 .env*.local
+
+# Build artifacts
+.next
+out
+dist
+build
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Supabase local dev
+supabase/.temp
+
+# Vercel CLI
+.vercel
+
+# User uploads (stored in Supabase Storage)
+edutask-backend/uploads/
