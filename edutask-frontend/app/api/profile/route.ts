@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/api-auth'
 import { apiErr, apiOk, parseJsonBody } from '@/lib/api-route'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sanitizeText } from '@/lib/utils'
+import { rateLimitByIP } from '@/lib/rate-limit'
 import type { Database } from '@/types'
 import { updateProfileSchema } from '@/lib/validations/task.schema'
 
@@ -27,6 +28,9 @@ export async function PATCH(request: Request) {
   const { user, profile } = await requireAuth()
   if (!user) return apiErr('Unauthorized', 401)
   if (profile?.is_banned) return apiErr('Your account is suspended', 403)
+
+  const rateLimit = rateLimitByIP(request, 'profile-update', 20, 60 * 1000)
+  if (!rateLimit.ok) return apiErr('Too many updates. Slow down.', 429)
 
   const parsedBody = await parseJsonBody(request)
   if (!parsedBody.ok) return parsedBody.response

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/lib/store/auth.store'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,30 +23,25 @@ type ChatMessage = Message & {
 
 export default function ChatRoomPage() {
   const params = useParams()
-  const supabase = useMemo(() => createClient(), [])
+  const supabase = createClient()
+  const { user: authUser } = useAuthStore()
   const taskId = params.taskId as string
+  const userId = authUser?.id ?? null
 
   const [task, setTask] = useState<ChatTask | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
+      if (!userId) {
         setLoading(false)
         setError('Please sign in to access chat.')
         return
       }
-
-      setUserId(user.id)
 
       try {
         const [taskRes, msgRes] = await Promise.all([
@@ -75,7 +71,7 @@ export default function ChatRoomPage() {
     }
 
     void init()
-  }, [supabase, taskId])
+  }, [taskId, userId])
 
   useEffect(() => {
     const channel = supabase
@@ -119,14 +115,30 @@ export default function ChatRoomPage() {
     }
   }, [supabase, taskId])
 
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [])
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !userId) return
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  const handleSend = useCallback(async () => {
+    if (!newMessage.trim() || !userId || !task) return
     const content = newMessage.trim()
     setNewMessage('')
+
+    const optimisticMsg: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      task_id: taskId,
+      sender_id: userId,
+      content,
+      created_at: new Date().toISOString(),
+      is_system_message: false,
+      flagged: false,
+      sender: { full_name: 'You' } as any,
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
 
     const res = await fetch('/api/messages', {
       method: 'POST',
@@ -134,20 +146,20 @@ export default function ChatRoomPage() {
       body: JSON.stringify({ task_id: taskId, content }),
     })
     const json = await res.json()
+
     if (!json.success) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id))
       toast.error(json.error ?? 'Failed to send message')
+      setNewMessage(content)
       return
     }
 
-    const message = json.data as ChatMessage
     setMessages((prev) =>
-      prev.some((existingMessage) => existingMessage.id === message.id)
-        ? prev
-        : [...prev, message]
+      prev.map((m) => m.id === optimisticMsg.id ? { ...json.data, sender: { full_name: 'You' } } : m)
     )
-  }
+  }, [newMessage, userId, taskId, task])
 
-  const submitWork = async () => {
+  const submitWork = useCallback(async () => {
     const res = await fetch(`/api/tasks/${taskId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -158,28 +170,26 @@ export default function ChatRoomPage() {
       toast.error(json.error ?? 'Failed to submit work')
       return
     }
-
     toast.success('Work submitted for review')
     setTask((currentTask) =>
       currentTask ? { ...currentTask, status: 'under_review' } : currentTask
     )
-  }
+  }, [taskId])
 
-  const acceptWork = async () => {
+  const acceptWork = useCallback(async () => {
     const res = await fetch(`/api/tasks/${taskId}/accept`, { method: 'POST' })
     const json = await res.json()
     if (!json.success) {
       toast.error(json.error ?? 'Failed to accept work')
       return
     }
-
     toast.success('Payment released to worker')
     setTask((currentTask) =>
       currentTask ? { ...currentTask, status: 'completed' } : currentTask
     )
-  }
+  }, [taskId])
 
-  const requestRevision = async () => {
+  const requestRevision = useCallback(async () => {
     const res = await fetch(`/api/tasks/${taskId}/revision`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -192,7 +202,6 @@ export default function ChatRoomPage() {
       toast.error(json.error ?? 'Failed to request revision')
       return
     }
-
     toast.success('Revision requested')
     setTask((currentTask) =>
       currentTask
@@ -203,7 +212,7 @@ export default function ChatRoomPage() {
           }
         : currentTask
     )
-  }
+  }, [taskId])
 
   if (loading) {
     return (
@@ -238,13 +247,13 @@ export default function ChatRoomPage() {
       </div>
 
       {task.status === 'under_review' && isPoster && (
-        <Card className="p-4 border-border bg-amber-50/50">
+        <Card className="p-4 border-border bg-amber-50/50 rounded-2xl">
           <p className="text-sm font-medium mb-3">Work has been submitted. Please review:</p>
           <div className="flex gap-2 flex-wrap">
             <Button
               size="sm"
               onClick={acceptWork}
-              className="bg-emerald-500 text-white hover:bg-emerald-600"
+              className="bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg"
             >
               <CheckCircle className="w-4 h-4 mr-1" /> Accept & Pay
             </Button>
@@ -253,6 +262,7 @@ export default function ChatRoomPage() {
               variant="outline"
               onClick={requestRevision}
               disabled={task.revisions_used >= 2}
+              className="rounded-lg"
             >
               <RotateCcw className="w-4 h-4 mr-1" /> Request Revision ({task.revisions_used ?? 0}
               /2)
@@ -262,19 +272,19 @@ export default function ChatRoomPage() {
       )}
 
       {(task.status === 'hired' || task.status === 'in_progress') && isWorker && (
-        <Card className="p-4 border-border bg-primary/5">
+        <Card className="p-4 border-border bg-primary/5 rounded-2xl">
           <p className="text-sm mb-2">Complete the work and submit when ready.</p>
           <Button
             size="sm"
             onClick={submitWork}
-            className="bg-primary text-primary-foreground"
+            className="bg-primary text-primary-foreground rounded-lg"
           >
             Submit Work for Review
           </Button>
         </Card>
       )}
 
-      <Card className="flex-1 border-border overflow-hidden flex flex-col">
+      <Card className="flex-1 border-border overflow-hidden flex flex-col rounded-2xl">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground text-sm py-10">
@@ -318,14 +328,14 @@ export default function ChatRoomPage() {
           <Input
             value={newMessage}
             onChange={(event) => setNewMessage(event.target.value)}
-            onKeyDown={(event) => event.key === 'Enter' && sendMessage()}
+            onKeyDown={(event) => event.key === 'Enter' && handleSend()}
             placeholder="Type a message..."
-            className="flex-1"
+            className="flex-1 rounded-xl"
           />
           <Button
-            onClick={sendMessage}
+            onClick={handleSend}
             disabled={!newMessage.trim()}
-            className="bg-primary text-primary-foreground"
+            className="bg-primary text-primary-foreground rounded-xl"
           >
             <Send className="w-4 h-4" />
           </Button>

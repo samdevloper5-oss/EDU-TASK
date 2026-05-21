@@ -2,7 +2,8 @@
   "name": "edutask-monorepo-root",
   "private": true,
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "supabase": "^2.100.1"
   },
   "scripts": {
     "dev": "concurrently -k -n backend,frontend \"npm --prefix edutask-backend run dev\" \"npm --prefix edutask-frontend run dev\"",

@@ -19,7 +19,6 @@ export default function PostTaskPage() {
   const [budget, setBudget] = useState('')
   const [deadline, setDeadline] = useState('')
   const [skills, setSkills] = useState('')
-  const [taskMode, setTaskMode] = useState<'online' | 'offline'>('online')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,7 +38,6 @@ export default function PostTaskPage() {
           title,
           description,
           category,
-          task_mode: taskMode,
           budget: numBudget,
           deadline: new Date(deadline).toISOString(),
           required_skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
@@ -76,20 +74,11 @@ export default function PostTaskPage() {
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} required className="mt-1.5 min-h-[120px]" placeholder="Describe what you need..." />
             <p className="text-xs text-muted-foreground mt-1">{description.length} characters (min 30)</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Category</Label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full mt-1.5 h-10 rounded-md border border-border bg-background px-3 text-sm">
-                {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
-              </select>
-            </div>
-            <div>
-              <Label>Mode</Label>
-              <select value={taskMode} onChange={(e) => setTaskMode(e.target.value as any)} className="w-full mt-1.5 h-10 rounded-md border border-border bg-background px-3 text-sm">
-                <option value="online">Online</option>
-                <option value="offline">Offline</option>
-              </select>
-            </div>
+          <div>
+            <Label>Category</Label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full mt-1.5 h-10 rounded-xl border border-border bg-background px-3 text-sm">
+              {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
+            </select>
           </div>
           <div>
             <Label>Budget (BDT)</Label>

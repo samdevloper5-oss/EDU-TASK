@@ -1,0 +1,22 @@
+{
+  "plugins": {
+    "vercel": {
+      "enabled": true
+    },
+    "supabase": {
+      "enabled": true
+    },
+    "linear": {
+      "enabled": true
+    },
+    "gitlab": {
+      "enabled": true
+    },
+    "cursor-sdk": {
+      "enabled": true
+    },
+    "cli-for-agent": {
+      "enabled": true
+    }
+  }
+}

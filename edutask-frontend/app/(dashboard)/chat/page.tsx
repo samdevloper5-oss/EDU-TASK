@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
 import { MessageCircle, Loader2 } from 'lucide-react'
 
 export default function ChatListPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [conversations, setConversations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 

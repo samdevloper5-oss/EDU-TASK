@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { Toaster } from 'sonner'
+import { QueryProvider } from '@/components/providers/query-provider'
+import { ReactScanProvider } from '@/components/providers/react-scan-provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -8,13 +10,9 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space
 
 export const metadata: Metadata = {
   title: 'EduTask — Student Task Marketplace',
-  description: 'Earn. Learn. Grow — Inside Your Campus. EduTask connects verified students with trusted campus micro-tasks.',
+  description: 'Earn. Learn. Grow — Inside Your Campus.',
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'EduTask',
-  },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'EduTask' },
 }
 
 export const viewport: Viewport = {
@@ -23,16 +21,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
-        {children}
-        <Toaster position="top-right" richColors />
+        <ReactScanProvider />
+        <QueryProvider>
+          {children}
+          <Toaster position="top-right" richColors expand />
+        </QueryProvider>
       </body>
     </html>
   )

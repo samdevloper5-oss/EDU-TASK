@@ -12,18 +12,38 @@ import { toast } from 'sonner'
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
-    password.length >= 8,
-    /[A-Z]/.test(password),
-    /[0-9]/.test(password),
-    /[^A-Za-z0-9]/.test(password),
+    { label: 'Min 8 chars', pass: password.length >= 8 },
+    { label: 'Uppercase', pass: /[A-Z]/.test(password) },
+    { label: 'Number', pass: /[0-9]/.test(password) },
+    { label: 'Symbol', pass: /[^A-Za-z0-9]/.test(password) },
   ]
-  const filled = checks.filter(Boolean).length
-  const color = filled <= 1 ? 'bg-red-500' : filled <= 2 ? 'bg-yellow-500' : filled === 3 ? 'bg-blue-500' : 'bg-green-500'
+  const filled = checks.filter((c) => c.pass).length
+  const strengthLabel = filled === 0 ? '' : filled === 1 ? 'Weak' : filled === 2 ? 'Fair' : filled === 3 ? 'Good' : 'Strong'
+  const strengthColor = filled <= 1 ? 'bg-red-500' : filled === 2 ? 'bg-amber-500' : filled === 3 ? 'bg-blue-500' : 'bg-emerald-500'
+  const textColor = filled <= 1 ? 'text-red-500' : filled === 2 ? 'text-amber-500' : filled === 3 ? 'text-blue-500' : 'text-emerald-500'
+
+  if (!password) return null
+
   return (
-    <div className="flex gap-1 mt-1.5">
-      {checks.map((ok, i) => (
-        <div key={i} className={`h-1.5 flex-1 rounded-full ${ok ? color : 'bg-gray-200'}`} />
-      ))}
+    <div className="mt-2 space-y-2">
+      <div className="flex gap-1">
+        {checks.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < filled ? strengthColor : 'bg-border'}`}
+          />
+        ))}
+        {strengthLabel && (
+          <span className={`text-xs font-semibold ml-2 ${textColor} whitespace-nowrap`}>{strengthLabel}</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1">
+        {checks.map((c) => (
+          <span key={c.label} className={`text-xs flex items-center gap-1 ${c.pass ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+            <span>{c.pass ? '✓' : '○'}</span> {c.label}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }

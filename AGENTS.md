@@ -1,0 +1,89 @@
+# EduTask — Agent Guide
+
+## Project Structure
+```
+edutask-frontend/     Next.js 16 App Router + TypeScript (deploy target)
+edutask-backend/      Express.js + Prisma (separate server, optional infra)
+Project DOCUMENTS/    PRD, TRD, BACKEND_SCHEMA, Implementation Plan, UI/UX, User Flow
+```
+
+**Architecture:** Single-server Supabase (Next.js API routes + Supabase client). Backend Express server exists but the TRD specifies it should NOT be used for the prototype — all DB access via Supabase (anon key for client, service role for server API routes).
+
+**Stack:** Next.js 16, TailwindCSS v4, shadcn/ui, Supabase SSR, TanStack Query v5, Zustand v5, React Hook Form + Zod.
+
+**Supabase project:** EDU-TAKS (ref: `lahfflahtbmgckochhex`)
+
+## Key Commands
+
+### Development
+```bash
+npm run dev                          # Starts both frontend + backend concurrently
+npm --prefix edutask-frontend run dev   # Frontend only (Next.js on :3000)
+```
+
+### Build & Lint
+```bash
+npm --prefix edutask-frontend run build  # Next.js build (required before deploy)
+npm --prefix edutask-frontend run lint   # ESLint
+cd edutask-backend && npm test           # Backend tests
+```
+
+## Supabase CLI (project root: edutask-frontend/)
+```bash
+cd edutask-frontend
+supabase link --project-ref lahfflahtbmgckochhex  # Link to EDU-TAKS
+supabase db push --linked                          # Push migrations
+supabase db pull --linked                          # Pull remote schema
+supabase gen types typescript --local > ../types/database.ts  # Regenerate types
+```
+
+**Migration files:** `edutask-frontend/supabase/migrations/`
+| File | Purpose |
+|------|---------|
+| `20260519_full_schema_bootstrap.sql` | Main schema (all tables, RLS, triggers, buckets) |
+| `20260519_demo_seed.sql` | Demo seed data (TODO placeholder) |
+
+Legacy migrations (`20260501_*`) were renamed with `_` prefix (invalid syntax, not needed).
+
+### Database migrations (alternative direct execution)
+```bash
+$env:SUPABASE_DB_PASSWORD="EDU-TASK@2007"
+cd edutask-frontend
+npx supabase db query --file supabase/migrations/XXX.sql --linked
+```
+
+**Realtime tables:** `messages`, `notifications`, `tasks`, `users`, `applications`
+
+## Vercel Deploy
+```bash
+cd edutask-frontend
+vercel --prod --yes         # Deploy to production
+```
+
+**Vercel project:** `edu-task` (`prj_cZj9BBZ51OQOE013UJeJM9447ghO`)
+- Root directory is auto-detected from deploy dir
+- Framework: Next.js (set via `edutask-frontend/vercel.json`)
+- Production URL: https://edu-task-rho.vercel.app
+
+### Required Environment Variables (set in Vercel Dashboard)
+```
+NEXT_PUBLIC_SUPABASE_URL=https://lahfflahtbmgckochhex.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
+NEXT_PUBLIC_APP_URL=https://edu-task-rho.vercel.app
+NEXT_PUBLIC_DEMO_MODE=true
+```
+
+## Key Architecture Rules
+- **No Resend/SMTP** — Supabase Auth handles OTP natively
+- **No Express backend for prototype** — API routes in `edutask-frontend/app/api/`
+- **RLS on ALL tables** — Never bypass with service_role from client
+- **Authorization from `users` table**, never from `user_metadata`
+- **Storage buckets:** `avatars` (public), `student-ids` (private), `task-files` (private)
+
+## Gotchas
+- Two Vercel projects exist: `edu-task` (active) and `edutask.bd` (old, custom domain not resolving)
+- `supabase/` dir is inside `edutask-frontend/`, not root
+- `.vercel` dirs in both root and `edutask-frontend/` — deploy from `edutask-frontend/`
+- Project-level Vercel auth protection may block public access; use `vercel.json` with `{"framework":"nextjs"}` to ensure correct routing
+- Backend `.env` should reference `lahfflahtbmgckochhex` (not `yeuzassgijcrvcalggfe`)

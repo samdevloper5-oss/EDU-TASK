@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -28,7 +29,7 @@ const navItems = [
   { label: 'Profile', href: '/profile', icon: User },
 ]
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
   const isAdmin = user?.is_admin ?? false
@@ -99,4 +100,4 @@ export function Sidebar() {
       </div>
     </aside>
   )
-}
+})

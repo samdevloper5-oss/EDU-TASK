@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Wallet, ShieldCheck, CheckCircle, Star, ArrowRight, TrendingUp } from 'lucide-react'
+import { Wallet, ShieldCheck, CheckCircle, Star, ArrowRight, TrendingUp, Clock } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -28,12 +28,6 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
-  const trustLabel =
-    (profile?.trust_score ?? 0) <= 20 ? '🌱 Newcomer' :
-    (profile?.trust_score ?? 0) <= 40 ? '🔵 Learning' :
-    (profile?.trust_score ?? 0) <= 60 ? '⭐ Trusted' :
-    (profile?.trust_score ?? 0) <= 80 ? '🏆 Expert' : '💎 Elite'
-
   return (
     <div className="space-y-8">
       <div>
@@ -46,41 +40,33 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5 border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Wallet className="w-4 h-4 text-primary" />
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">Wallet</span>
+        <Card className="p-5 border-border rounded-2xl bg-gradient-to-br from-primary/20 to-indigo-500/10 overflow-hidden relative">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+            <Wallet className="w-5 h-5 text-primary" />
           </div>
-          <p className="text-xl font-bold">{(profile?.wallet_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-2xl font-bold">{(profile?.wallet_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-medium">Wallet Balance</p>
         </Card>
-        <Card className="p-5 border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-amber-500" />
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">In Escrow</span>
+        <Card className="p-5 border-border rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 overflow-hidden relative">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3">
+            <ShieldCheck className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-xl font-bold">{(profile?.escrow_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-2xl font-bold">{(profile?.escrow_balance ?? 0).toLocaleString()}৳</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-medium">In Escrow</p>
         </Card>
-        <Card className="p-5 border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">Completed</span>
+        <Card className="p-5 border-border rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 overflow-hidden relative">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-3">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
           </div>
-          <p className="text-xl font-bold">{profile?.completed_tasks ?? 0} tasks</p>
+          <p className="text-2xl font-bold">{profile?.completed_tasks ?? 0}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-medium">Completed</p>
         </Card>
-        <Card className="p-5 border-border">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-violet-500/10 flex items-center justify-center">
-              <Star className="w-4 h-4 text-violet-500" />
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">Trust Score</span>
+        <Card className="p-5 border-border rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/10 overflow-hidden relative">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-3">
+            <Star className="w-5 h-5 text-violet-500" />
           </div>
-          <p className="text-xl font-bold">{profile?.trust_score ?? 0} <span className="text-xs font-normal text-muted-foreground">{trustLabel}</span></p>
+          <p className="text-2xl font-bold">{profile?.trust_score ?? 0}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-medium">Trust Score</p>
         </Card>
       </div>
 
@@ -106,25 +92,35 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {(tasks ?? []).map((task: any) => (
-            <Link key={task.id} href={`/tasks/${task.id}`}>
-              <Card className="p-5 border-border hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer h-full">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium px-2 py-1 rounded-md bg-primary/10 text-primary">{task.category}</span>
-                  <span className="text-xs text-muted-foreground">{task.task_mode}</span>
-                </div>
-                <h3 className="font-semibold text-sm mb-2 line-clamp-2">{task.title}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{task.poster?.full_name ?? 'Unknown'} · ⭐ {task.poster?.trust_score ?? 0}</span>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm font-bold text-primary">{task.budget?.toLocaleString()}৳</span>
-                  <span className="text-xs text-muted-foreground">{task.applicant_count ?? 0} applicants</span>
-                </div>
-              </Card>
-            </Link>
-          ))}
+          {(tasks ?? []).map((task: any) => {
+            const daysLeft = Math.ceil((new Date(task.deadline).getTime() - Date.now()) / 86400000)
+            return (
+              <Link key={task.id} href={`/tasks/${task.id}`}>
+                <Card className="p-5 border-border hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all cursor-pointer h-full bg-card rounded-2xl group">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-primary/10 text-primary">{task.category}</span>
+                    <span className={`text-xs flex items-center gap-1 ${daysLeft < 1 ? 'text-red-500' : daysLeft <= 3 ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                      <Clock className="w-3 h-3" />
+                      {daysLeft > 0 ? `${daysLeft}d` : 'Expired'}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">{task.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">{task.description}</p>
+                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold overflow-hidden">
+                        {task.poster?.full_name?.[0]?.toUpperCase() ?? 'U'}
+                      </div>
+                      <span className="text-xs text-muted-foreground truncate max-w-[80px]">{task.poster?.full_name ?? 'Unknown'}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-primary">{task.budget?.toLocaleString()}৳</p>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       </div>
 

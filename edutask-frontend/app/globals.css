@@ -37,6 +37,8 @@
   --sidebar-accent-foreground: #4F46E5;
   --sidebar-border: #E2E8F0;
   --sidebar-ring: #4F46E5;
+  --success: #10B981;
+  --success-foreground: #FFFFFF;
 }
 
 @theme inline {
@@ -175,4 +177,13 @@
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeInUp 0.25s ease-out forwards;
 }
