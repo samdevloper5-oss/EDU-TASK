@@ -1,6 +1,8 @@
 import { apiErr, apiOk } from '@/lib/api-route'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
+export const revalidate = 60
+
 const LEADERBOARD_FIELDS =
   'id, full_name, profile_photo_url, university_name, trust_score, completed_tasks, average_rating, total_reviews'
 

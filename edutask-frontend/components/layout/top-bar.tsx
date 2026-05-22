@@ -5,15 +5,25 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, LogOut, User, MessageCircle, Wallet } from 'lucide-react'
+import { Bell, LogOut, User, MessageCircle, Wallet, X } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+
+interface NotificationItem {
+  id: string
+  title: string
+  message: string
+  is_read: boolean
+  link?: string | null
+  created_at: string
+}
 
 function NotificationBell() {
   const supabase = useMemo(() => createClient(), [])
   const qc = useQueryClient()
   const [showDropdown, setShowDropdown] = useState(false)
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<NotificationItem[]>({
     queryKey: ['notifications'],
     queryFn: async () => {
       const res = await fetch('/api/notifications')
@@ -24,7 +34,7 @@ function NotificationBell() {
     refetchOnWindowFocus: false,
   })
 
-  const unreadCount = notifications.filter((n: any) => !n.is_read).length
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length
 
   useEffect(() => {
     let channel: any
@@ -50,23 +60,39 @@ function NotificationBell() {
   }, [supabase, qc])
 
   const markAllRead = useCallback(async () => {
-    await fetch('/api/notifications/mark-read', { method: 'POST' })
-    qc.setQueryData(['notifications'], (old: any) => {
-      const notifs = old?.notifications ?? []
-      return { ...old, notifications: notifs.map((n: any) => ({ ...n, is_read: true })) }
-    })
+    const res = await fetch('/api/notifications/mark-read', { method: 'POST' })
+    if (!res.ok) {
+      toast.error('Failed to mark notifications as read')
+      return
+    }
+
+    qc.setQueryData(['notifications'], (old: NotificationItem[] | undefined) =>
+      (old ?? []).map((notification) => ({ ...notification, is_read: true }))
+    )
+  }, [qc])
+
+  const clearAll = useCallback(async () => {
+    const res = await fetch('/api/notifications/clear', { method: 'DELETE' })
+    if (!res.ok) {
+      toast.error('Failed to clear notifications')
+      return
+    }
+
+    qc.setQueryData(['notifications'], [] as NotificationItem[])
+    toast.success('Notifications cleared')
   }, [qc])
 
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setShowDropdown((v) => !v)}
         className="relative p-2 rounded-xl hover:bg-muted transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
-        <Bell className="w-5 h-5 text-muted-foreground" />
+        <Bell className="size-5 text-muted-foreground" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+          <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -74,36 +100,107 @@ function NotificationBell() {
 
       {showDropdown && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
-            <div className="p-3 border-b border-border flex items-center justify-between">
-              <span className="font-semibold text-sm">Notifications</span>
-              {unreadCount > 0 && (
-                <button onClick={markAllRead} className="text-xs text-primary hover:underline">
-                  Mark all read
-                </button>
-              )}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setShowDropdown(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                setShowDropdown(false)
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close notifications"
+          />
+          <div
+            className="
+              fixed inset-x-0 bottom-0 top-auto z-20 overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl
+              md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-96 md:rounded-2xl
+            "
+          >
+            <div className="absolute inset-x-0 top-0 flex justify-center pb-1 pt-2 pointer-events-none md:hidden">
+              <div className="h-1 w-10 rounded-full bg-border" />
             </div>
-            <div className="max-h-80 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">No notifications yet</div>
-              ) : (
-                (notifications as any[]).slice(0, 20).map((n) => (
-                  <Link
-                    key={n.id}
-                    href={n.link ?? '#'}
-                    onClick={() => setShowDropdown(false)}
-                    className={`block p-3 border-b border-border hover:bg-muted/30 transition-colors ${!n.is_read ? 'bg-primary/5' : ''}`}
+
+            <div className="sticky top-0 flex items-center justify-between border-b border-border bg-card p-4">
+              <span className="text-base font-semibold">Notifications</span>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button type="button" onClick={markAllRead} className="text-xs font-medium text-primary hover:underline">
+                    Mark all read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAll}
+                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
                   >
-                    <p className="text-sm font-medium">{n.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {new Date(n.created_at).toLocaleString('en-BD', { dateStyle: 'short', timeStyle: 'short' })}
-                    </p>
+                    Clear all
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowDropdown(false)}
+                  className="rounded-lg p-1 transition-colors hover:bg-muted md:hidden"
+                  aria-label="Close notifications"
+                >
+                  <X className="size-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto overscroll-contain md:max-h-80">
+              {notifications.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Bell className="mx-auto mb-3 size-10 text-muted-foreground opacity-30" />
+                  <p className="text-sm text-muted-foreground">No notifications</p>
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <Link
+                    key={notification.id}
+                    href={notification.link ?? '#'}
+                    onClick={async () => {
+                      setShowDropdown(false)
+                      if (!notification.is_read) {
+                        await fetch('/api/notifications/mark-read', { method: 'POST' })
+                        qc.setQueryData(['notifications'], (old: NotificationItem[] | undefined) =>
+                          (old ?? []).map((item) =>
+                            item.id === notification.id ? { ...item, is_read: true } : item
+                          )
+                        )
+                      }
+                    }}
+                    className={`flex items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50 active:bg-muted ${
+                      !notification.is_read ? 'bg-primary/5' : ''
+                    }`}
+                  >
+                    <div
+                      className={`mt-1.5 size-2 shrink-0 rounded-full ${
+                        !notification.is_read ? 'bg-primary' : 'bg-transparent'
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-sm ${!notification.is_read ? 'font-semibold' : 'font-medium'}`}>
+                        {notification.title}
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                        {notification.message}
+                      </p>
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        {new Date(notification.created_at).toLocaleString('en-BD', {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                        })}
+                      </p>
+                    </div>
                   </Link>
                 ))
               )}
             </div>
+
+            <div className="md:hidden" style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
           </div>
         </>
       )}
@@ -130,13 +227,14 @@ function UserMenu() {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 rounded-xl hover:bg-muted p-1.5 transition-colors"
         aria-label="User menu"
       >
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
+        <div className="size-8 overflow-hidden rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
           {user?.profile_photo_url
-            ? <img src={user.profile_photo_url} alt={user.full_name ?? 'User'} className="w-full h-full object-cover" />
+            ? <img src={user.profile_photo_url} alt={user.full_name ?? 'User'} className="size-full object-cover" />
             : initial}
         </div>
         <span className="hidden md:block text-sm font-medium text-foreground max-w-[100px] truncate">
@@ -159,10 +257,11 @@ function UserMenu() {
             </Link>
             <div className="border-t border-border my-1" />
             <button
+              type="button"
               onClick={handleSignOut}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
             >
-              <LogOut className="w-4 h-4" /> Sign out
+              <LogOut className="size-4" /> Sign out
             </button>
           </div>
         </>

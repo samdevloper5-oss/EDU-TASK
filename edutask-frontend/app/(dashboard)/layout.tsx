@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
@@ -26,7 +24,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   if (!profile?.email_verified) {
-    redirect('/verify-otp')
+    const verifyUrl = `/verify-otp?email=${encodeURIComponent(user.email ?? '')}`
+    redirect(verifyUrl)
   }
 
   if (!profile?.profile_complete) {

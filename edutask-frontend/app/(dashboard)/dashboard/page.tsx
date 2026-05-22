@@ -35,7 +35,9 @@ export default async function DashboardPage() {
           Welcome back, {profile?.full_name?.split(' ')[0] ?? 'Student'}!
         </h1>
         <p className="text-muted-foreground text-sm">
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', year: 'numeric' })}
+          <time suppressHydrationWarning dateTime={new Date().toISOString()}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', year: 'numeric' })}
+          </time>
         </p>
       </div>
 

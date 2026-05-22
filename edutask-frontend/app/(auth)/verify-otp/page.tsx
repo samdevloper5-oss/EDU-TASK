@@ -52,7 +52,7 @@ function OTPInput({ value, onChange, onComplete }: { value: string; onChange: (v
     <div className="flex gap-2 justify-center">
       {Array.from({ length: 6 }).map((_, i) => (
         <input
-          key={i}
+          key={`otp-digit-${i}`}
           ref={(el) => { inputsRef.current[i] = el }}
           type="text"
           inputMode="numeric"
@@ -98,7 +98,8 @@ function VerifyOTPContent() {
         setTimeout(() => setErrorShake(false), 500)
         throw new Error(data.error || 'Invalid OTP')
       }
-      toast.success(data.message)
+      toast.success('Email verified! Setting up your profile...')
+      await new Promise((resolve) => setTimeout(resolve, 800))
       router.push('/onboarding')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Verification failed')
@@ -156,7 +157,7 @@ function VerifyOTPContent() {
           {countdown > 0 ? (
             <p className="text-sm text-muted-foreground">Resend code in {countdown}s</p>
           ) : (
-            <button onClick={handleResend} className="text-sm text-primary hover:underline font-medium">
+            <button type="button" onClick={handleResend} className="text-sm text-primary hover:underline font-medium">
               Resend code
             </button>
           )}

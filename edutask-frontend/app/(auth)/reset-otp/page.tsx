@@ -36,7 +36,7 @@ function OTPInput({ value, onChange, onComplete }: { value: string; onChange: (v
   return (
     <div className="flex gap-2 justify-center">
       {Array.from({ length: 6 }).map((_, i) => (
-        <input key={i} ref={(el) => { inputsRef.current[i] = el }} type="text" inputMode="numeric" maxLength={1} value={value[i] ?? ''} onChange={(e) => handleChange(i, e.target.value)} onKeyDown={(e) => handleKeyDown(i, e)} onPaste={handlePaste} className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary" />
+        <input key={`reset-otp-digit-${i}`} ref={(el) => { inputsRef.current[i] = el }} type="text" inputMode="numeric" maxLength={1} value={value[i] ?? ''} onChange={(e) => handleChange(i, e.target.value)} onKeyDown={(e) => handleKeyDown(i, e)} onPaste={handlePaste} className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary" />
       ))}
     </div>
   )

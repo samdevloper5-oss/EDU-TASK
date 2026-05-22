@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
 import type { Task, User } from '@/types'
+import Link from 'next/link'
 
 type DisputeTask = Task & {
   poster: Pick<User, 'full_name' | 'trust_score'> | null
@@ -49,20 +50,11 @@ export default async function AdminDisputesPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-emerald-600 border-emerald-200"
-                  >
-                    Release to Worker
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-600 border-red-200"
-                  >
-                    Refund Poster
-                  </Button>
+                  <Link href={`/admin/disputes/${task.id}`}>
+                    <Button size="sm" variant="outline">
+                      Review Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </Card>

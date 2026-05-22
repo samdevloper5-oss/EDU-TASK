@@ -399,7 +399,7 @@ export function LandingPage() {
                 style={{ transform: `translateX(-${testimonialIdx * 100}%)` }}
               >
                 {testimonials.map((t, i) => (
-                  <div key={i} className="w-full flex-shrink-0 px-4">
+                  <div key={`${t.name}-${t.university}`} className="w-full flex-shrink-0 px-4">
                     <Card className="p-8 border-border bg-background text-center">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center mx-auto mb-4">
                         <span className="text-primary font-bold text-xl">{t.name[0]}</span>
@@ -407,7 +407,7 @@ export function LandingPage() {
                       <div className="flex items-center justify-center gap-1 mb-4">
                         {Array.from({ length: 5 }).map((_, j) => (
                           <Star
-                            key={j}
+                            key={`${t.name}-star-${j}`}
                             className={`w-4 h-4 ${j < t.rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/20'}`}
                           />
                         ))}
@@ -422,6 +422,8 @@ export function LandingPage() {
             </div>
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
+                type="button"
+                aria-label="Previous testimonial"
                 onClick={() => setTestimonialIdx(prev => (prev - 1 + testimonials.length) % testimonials.length)}
                 className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               >
@@ -430,13 +432,17 @@ export function LandingPage() {
               <div className="flex items-center gap-2">
                 {testimonials.map((_, i) => (
                   <button
-                    key={i}
+                    key={`testimonial-dot-${i}`}
+                    type="button"
+                    aria-label={`Go to testimonial ${i + 1}`}
                     onClick={() => setTestimonialIdx(i)}
                     className={`w-2 h-2 rounded-full transition-all ${i === testimonialIdx ? 'bg-primary w-6' : 'bg-border'}`}
                   />
                 ))}
               </div>
               <button
+                type="button"
+                aria-label="Next testimonial"
                 onClick={() => setTestimonialIdx(prev => (prev + 1) % testimonials.length)}
                 className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               >

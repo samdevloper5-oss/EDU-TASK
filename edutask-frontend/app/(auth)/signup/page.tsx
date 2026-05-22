@@ -27,9 +27,9 @@ function PasswordStrength({ password }: { password: string }) {
   return (
     <div className="mt-2 space-y-2">
       <div className="flex gap-1">
-        {checks.map((_, i) => (
+        {checks.map((check, i) => (
           <div
-            key={i}
+            key={check.label}
             className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < filled ? strengthColor : 'bg-border'}`}
           />
         ))}
@@ -74,14 +74,15 @@ export default function SignUpPage() {
         body: JSON.stringify({ name, email, password }),
       })
       const data = await res.json()
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         throw new Error(data.error || 'Registration failed')
       }
-      toast.success(data.message)
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
+      toast.success('Check your email for a 6-digit verification code')
+      setTimeout(() => {
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
+      }, 500)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Registration failed')
-    } finally {
       setLoading(false)
     }
   }

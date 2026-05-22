@@ -29,7 +29,7 @@ export async function POST(
   const workerPayout = roundMoney(budget - platformFee)
 
   if (workerPayout < 100) {
-    return apiErr('Payout after platform fee must be at least ৳100', 400)
+    return apiErr('Payout after platform fee must be at least Tk 100', 400)
   }
 
   const { data: poster } = await supabaseAdmin
@@ -105,73 +105,81 @@ export async function POST(
     return apiErr('Failed to complete task', 500)
   }
 
-  await supabaseAdmin.from('transactions').insert([
-    {
-      user_id: user.id,
-      type: 'escrow_release',
-      amount: budget,
-      fee: 0,
-      net_amount: -budget,
-      method: 'wallet',
-      status: 'completed',
-      reference_id: taskId,
-      counterparty_id: task.hired_worker_id,
-      notes: `Escrow released for: ${task.title}`,
-    },
-    {
-      user_id: task.hired_worker_id,
-      type: 'earning',
-      amount: budget,
-      fee: platformFee,
-      net_amount: workerPayout,
-      method: 'wallet',
-      status: 'completed',
-      reference_id: taskId,
-      counterparty_id: user.id,
-      notes: `Payment for: ${task.title}`,
-    },
+  await Promise.all([
+    supabaseAdmin.from('transactions').insert([
+      {
+        user_id: user.id,
+        type: 'escrow_release',
+        amount: budget,
+        fee: 0,
+        net_amount: -budget,
+        method: 'wallet',
+        status: 'completed',
+        reference_id: taskId,
+        counterparty_id: task.hired_worker_id,
+        notes: `Escrow released for: ${task.title}`,
+      },
+      {
+        user_id: task.hired_worker_id,
+        type: 'earning',
+        amount: budget,
+        fee: platformFee,
+        net_amount: workerPayout,
+        method: 'wallet',
+        status: 'completed',
+        reference_id: taskId,
+        counterparty_id: user.id,
+        notes: `Payment for: ${task.title}`,
+      },
+    ]),
+    supabaseAdmin.from('platform_earnings').insert({
+      task_id: taskId,
+      amount: platformFee,
+      task_budget: budget,
+      fee_rate: PLATFORM_FEE_RATE,
+    }),
+    insertSystemMessage(
+      taskId,
+      `Work accepted. Tk ${workerPayout.toLocaleString()} released to worker (Tk ${platformFee.toLocaleString()} platform fee).`
+    ),
+    createNotification({
+      userId: task.hired_worker_id,
+      type: 'task_accepted',
+      title: 'Work accepted',
+      message: `You earned Tk ${workerPayout.toLocaleString()} for "${task.title}"`,
+      link: '/wallet',
+      referenceId: taskId,
+      actorId: user.id,
+    }),
+    createNotification({
+      userId: task.hired_worker_id,
+      type: 'escrow_released',
+      title: 'Payment received',
+      message: `Tk ${workerPayout.toLocaleString()} added to your wallet`,
+      link: '/wallet',
+      referenceId: taskId,
+      actorId: user.id,
+    }),
+    createNotification({
+      userId: user.id,
+      type: 'task_accepted',
+      title: 'Task completed',
+      message: `"${task.title}" marked as completed`,
+      link: `/tasks/${taskId}`,
+      referenceId: taskId,
+    }),
   ])
 
-  await supabaseAdmin.from('platform_earnings').insert({
-    task_id: taskId,
-    amount: platformFee,
-    task_budget: budget,
-    fee_rate: PLATFORM_FEE_RATE,
-  })
+  const { error: cleanupError } = await supabaseAdmin
+    .from('messages')
+    .delete()
+    .eq('task_id', taskId)
+    .eq('is_system_message', false)
+    .eq('flagged', false)
 
-  await insertSystemMessage(
-    taskId,
-    `Work accepted. ৳${workerPayout.toLocaleString()} released to worker (৳${platformFee.toLocaleString()} platform fee).`
-  )
-
-  await createNotification({
-    userId: task.hired_worker_id,
-    type: 'task_accepted',
-    title: 'Work accepted',
-    message: `You earned ৳${workerPayout.toLocaleString()} for "${task.title}"`,
-    link: `/wallet`,
-    referenceId: taskId,
-    actorId: user.id,
-  })
-
-  await createNotification({
-    userId: task.hired_worker_id,
-    type: 'escrow_released',
-    title: 'Payment received',
-    message: `৳${workerPayout.toLocaleString()} added to your wallet`,
-    link: `/wallet`,
-    referenceId: taskId,
-    actorId: user.id,
-  })
-
-  await createNotification({
-    userId: user.id,
-    type: 'task_accepted',
-    title: 'Task completed',
-    message: `"${task.title}" marked as completed`,
-    link: `/tasks/${taskId}`,
-    referenceId: taskId,
-  })
+  if (cleanupError) {
+    console.error('Message cleanup failed (non-fatal):', cleanupError.message)
+  }
 
   return apiOk({
     task: updatedTask,

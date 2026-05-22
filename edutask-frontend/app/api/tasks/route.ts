@@ -6,6 +6,8 @@ import type { TaskCategory } from '@/types'
 import { sanitizeText } from '@/lib/utils'
 import { createTaskSchema } from '@/lib/validations/task.schema'
 
+export const revalidate = 15
+
 const POSTER_FIELDS =
   'id, full_name, profile_photo_url, trust_score, average_rating, university_name, student_id_verified'
 

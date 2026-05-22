@@ -53,36 +53,34 @@ export async function POST(
     return apiErr('Failed to submit work', 500)
   }
 
-  const submissionMessage = parsed.data.message
-    ? sanitizeText(parsed.data.message)
-    : 'Work submitted'
+  const submissionMessage = parsed.data.message ? sanitizeText(parsed.data.message) : 'Work submitted'
 
-  if (parsed.data.message || parsed.data.file_url) {
-    await supabaseAdmin.from('messages').insert({
-      task_id: taskId,
-      sender_id: user.id,
-      content: submissionMessage,
-      message_type: parsed.data.file_url ? 'file' : 'text',
-      file_url: parsed.data.file_url ?? null,
-      file_name: parsed.data.file_name ? sanitizeText(parsed.data.file_name) : null,
-      is_system_message: false,
-    })
-  }
-
-  await insertSystemMessage(
-    taskId,
-    'Work submitted for review. The poster has 72 hours to accept or request a revision.'
-  )
-
-  await createNotification({
-    userId: task.poster_id,
-    type: 'task_submitted',
-    title: 'Work submitted',
-    message: `Work was submitted for "${task.title}"`,
-    link: `/chat/${taskId}`,
-    referenceId: taskId,
-    actorId: user.id,
-  })
+  await Promise.all([
+    parsed.data.message || parsed.data.file_url
+      ? supabaseAdmin.from('messages').insert({
+          task_id: taskId,
+          sender_id: user.id,
+          content: submissionMessage,
+          message_type: parsed.data.file_url ? 'file' : 'text',
+          file_url: parsed.data.file_url ?? null,
+          file_name: parsed.data.file_name ? sanitizeText(parsed.data.file_name) : null,
+          is_system_message: false,
+        })
+      : Promise.resolve(),
+    insertSystemMessage(
+      taskId,
+      'Work submitted for review. The poster has 72 hours to accept or request a revision.'
+    ),
+    createNotification({
+      userId: task.poster_id,
+      type: 'task_submitted',
+      title: 'Work submitted',
+      message: `Work was submitted for "${task.title}"`,
+      link: `/chat/${taskId}`,
+      referenceId: taskId,
+      actorId: user.id,
+    }),
+  ])
 
   return apiOk(updatedTask)
 }

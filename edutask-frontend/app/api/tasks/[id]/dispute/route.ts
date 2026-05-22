@@ -32,8 +32,7 @@ export async function POST(
 
   if (!task) return apiErr('Task not found', 404)
 
-  const isParticipant =
-    user.id === task.poster_id || user.id === task.hired_worker_id
+  const isParticipant = user.id === task.poster_id || user.id === task.hired_worker_id
   if (!isParticipant) return apiErr('Only task participants can open a dispute', 403)
 
   if (!DISPUTABLE_STATUSES.includes(task.status as (typeof DISPUTABLE_STATUSES)[number])) {
@@ -54,52 +53,47 @@ export async function POST(
     return apiErr('Failed to open dispute', 500)
   }
 
-  const filerLabel = user.id === task.poster_id ? 'Poster' : 'Worker'
-  await insertSystemMessage(
-    taskId,
-    `Dispute opened by ${filerLabel}: ${disputeReason}`
-  )
-
-  const otherPartyId =
-    user.id === task.poster_id ? task.hired_worker_id : task.poster_id
-
-  if (otherPartyId) {
-    await createNotification({
-      userId: otherPartyId,
-      type: 'task_disputed',
-      title: 'Dispute opened',
-      message: `A dispute was opened on "${task.title}"`,
-      link: `/chat/${taskId}`,
-      referenceId: taskId,
-      actorId: user.id,
-    })
-  }
-
-  await createNotification({
-    userId: user.id,
-    type: 'task_disputed',
-    title: 'Dispute filed',
-    message: `Your dispute on "${task.title}" is under admin review`,
-    link: `/chat/${taskId}`,
-    referenceId: taskId,
-  })
+  const otherPartyId = user.id === task.poster_id ? task.hired_worker_id : task.poster_id
 
   const { data: admins } = await supabaseAdmin
     .from('users')
     .select('id')
     .eq('is_admin', true)
 
-  for (const admin of admins ?? []) {
-    await createNotification({
-      userId: admin.id,
+  const filerLabel = user.id === task.poster_id ? 'Poster' : 'Worker'
+  await Promise.all([
+    insertSystemMessage(taskId, `Dispute opened by ${filerLabel}: ${disputeReason}`),
+    otherPartyId
+      ? createNotification({
+          userId: otherPartyId,
+          type: 'task_disputed',
+          title: 'Dispute opened',
+          message: `A dispute was opened on "${task.title}"`,
+          link: `/chat/${taskId}`,
+          referenceId: taskId,
+          actorId: user.id,
+        })
+      : Promise.resolve(),
+    createNotification({
+      userId: user.id,
       type: 'task_disputed',
-      title: 'New dispute',
-      message: `Dispute filed on "${task.title}" — review required`,
-      link: `/admin/disputes`,
+      title: 'Dispute filed',
+      message: `Your dispute on "${task.title}" is under admin review`,
+      link: `/chat/${taskId}`,
       referenceId: taskId,
-      actorId: user.id,
-    })
-  }
+    }),
+    ...(admins ?? []).map((admin) =>
+      createNotification({
+        userId: admin.id,
+        type: 'task_disputed',
+        title: 'New dispute',
+        message: `Dispute filed on "${task.title}" - review required`,
+        link: '/admin/disputes',
+        referenceId: taskId,
+        actorId: user.id,
+      })
+    ),
+  ])
 
   return apiOk(updatedTask, { status: 201 })
 }
