@@ -1,5 +1,5 @@
 import { requireAuth } from '@/lib/api-auth'
-import { apiErr, apiOk, insertSystemMessage, parseJsonBody } from '@/lib/api-route'
+import { apiErr, apiOk, insertSystemMessage } from '@/lib/api-route'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createNotification } from '@/lib/notifications'
 import { sanitizeText } from '@/lib/utils'
@@ -14,10 +14,14 @@ export async function POST(
   if (!user) return apiErr('Unauthorized', 401)
   if (profile?.is_banned) return apiErr('Your account is suspended', 403)
 
-  const parsedBody = await parseJsonBody(request)
-  if (!parsedBody.ok) return parsedBody.response
+  let body: Record<string, unknown> = {}
+  try {
+    body = (await request.json()) ?? {}
+  } catch {
+    // empty body is fine — all fields in submitWorkSchema are optional
+  }
 
-  const parsed = submitWorkSchema.safeParse(parsedBody.body ?? {})
+  const parsed = submitWorkSchema.safeParse(body)
   if (!parsed.success) {
     return apiErr(parsed.error.errors[0].message, 400)
   }
