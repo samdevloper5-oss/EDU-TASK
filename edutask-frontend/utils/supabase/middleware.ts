@@ -79,7 +79,12 @@ export async function updateSession(request: NextRequest) {
 
   // Auth pages — redirect authenticated users
   if (user && (pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password')) {
-    url.pathname = '/dashboard'
+    const { data: authProfile } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    url.pathname = authProfile?.is_admin ? '/admin' : '/dashboard'
     return NextResponse.redirect(url)
   }
 
