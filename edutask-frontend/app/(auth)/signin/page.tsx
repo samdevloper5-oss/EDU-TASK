@@ -55,7 +55,8 @@ function SignInForm() {
       }
 
       // Admin check by email — bypass users table entirely
-      if (data.user.email === ADMIN_EMAIL) {
+      const userEmail = data.user.email?.toLowerCase().trim() ?? ''
+      if (userEmail === ADMIN_EMAIL) {
         router.push('/admin')
         return
       }

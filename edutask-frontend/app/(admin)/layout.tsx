@@ -31,8 +31,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect('/signin')
 
-  const { data: profile } = await supabase.from('users').select('full_name, is_admin, is_banned').eq('id', user.id).single()
-  if (!profile?.is_admin || profile.is_banned) redirect('/dashboard')
+  const isAdminEmail = user.email === 'admin@edutask.bd'
+  let displayName = user.email ?? 'Admin'
+
+  if (!isAdminEmail) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('full_name, is_admin, is_banned')
+      .eq('id', user.id)
+      .single()
+    if (!profile?.is_admin || profile.is_banned) redirect('/dashboard')
+    if (profile.full_name) displayName = profile.full_name
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F8F7] flex">
@@ -64,7 +74,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="px-3 py-4 border-t border-[#E5E5E3]">
           <div className="px-3 py-2 mb-1">
-            <p className="text-xs font-medium text-[#0F0F0F] truncate">{profile.full_name ?? user.email}</p>
+            <p className="text-xs font-medium text-[#0F0F0F] truncate">{displayName}</p>
             <p className="text-[10px] text-[#A3A3A3]">Administrator</p>
           </div>
           <form action="/api/auth/signout" method="POST">
