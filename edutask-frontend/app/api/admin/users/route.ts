@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const search = searchParams.get('search')?.trim()
   const banned = searchParams.get('banned')
-  const { page, limit, from, to } = parsePagination(searchParams, { limit: 25 })
+  const admins = searchParams.get('admins')
+  const { page, limit, from, to } = parsePagination(searchParams, { limit: 100 })
 
   let query = supabaseAdmin
     .from('users')
@@ -29,6 +30,9 @@ export async function GET(request: Request) {
     query = query.eq('is_banned', true)
   } else if (banned === 'false') {
     query = query.eq('is_banned', false)
+  }
+  if (admins === 'true') {
+    query = query.eq('is_admin', true)
   }
 
   const { data, error, count } = await query
