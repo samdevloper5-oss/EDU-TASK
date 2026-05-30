@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { DM_Sans, Sora } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ReactScanProvider } from '@/components/providers/react-scan-provider'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-body' })
-const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono-stack' })
+const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-body' })
+const sora = Sora({ subsets: ['latin'], variable: '--font-display' })
 
 export const metadata: Metadata = {
   title: 'EduTask — Student Task Marketplace',
@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${dmSans.variable} ${sora.variable} font-sans antialiased`}>
         <ReactScanProvider />
         <QueryProvider>
           {children}
