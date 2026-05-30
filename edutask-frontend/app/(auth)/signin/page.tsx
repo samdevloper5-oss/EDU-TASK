@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function SignInPage() {
@@ -35,7 +35,11 @@ export default function SignInPage() {
           router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
           return
         }
-        toast.error(error.message.toLowerCase().includes('invalid') ? 'Invalid email or password' : error.message)
+        toast.error(
+          error.message.toLowerCase().includes('invalid')
+            ? 'Invalid email or password'
+            : error.message
+        )
         return
       }
 
@@ -81,91 +85,89 @@ export default function SignInPage() {
   }, [email, password, router])
 
   return (
-    <main className="min-h-screen bg-background px-6 py-10">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center">
-        <div className="w-full">
-          <div className="mb-8 flex items-center gap-2.5">
-            <div className="size-8 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-sm font-bold text-primary-foreground">E</span>
-            </div>
-            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
+    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="flex items-center gap-2.5 mb-10">
+          <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">E</span>
           </div>
+          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
+        </div>
 
-          <div className="card p-8">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: 'var(--font-heading)' }}>
-                Welcome back
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
+        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
+          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Welcome back</h1>
+          <p className="text-[#6B6B6B] text-sm mb-8">Sign in to your account</p>
+
+          <form onSubmit={handleSignIn} className="space-y-5">
+            <div>
+              <Label className="text-[#0F0F0F] text-sm font-medium">Email</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5] focus-visible:border-[#4F46E5]"
+                placeholder="you@university.edu"
+              />
             </div>
 
-            <form onSubmit={handleSignIn} className="space-y-5">
-              <div>
-                <Label className="text-sm font-medium text-foreground">Email</Label>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <Label className="text-[#0F0F0F] text-sm font-medium">Password</Label>
+                <Link href="/forgot-password" className="text-xs text-[#4F46E5] hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
                 <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoComplete="email"
-                  className="mt-1.5"
-                  placeholder="you@university.edu"
+                  autoComplete="current-password"
+                  className="h-10 bg-white border-[#E5E5E3] rounded-lg text-sm pr-10 focus-visible:ring-[#4F46E5] focus-visible:border-[#4F46E5]"
+                  placeholder="Your password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-[#0F0F0F] transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
               </div>
+            </div>
 
-              <div>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <Label className="text-sm font-medium text-foreground">Password</Label>
-                  <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="pr-10"
-                    placeholder="Your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle-text transition-colors hover:text-foreground"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-              </div>
+            <Button
+              type="submit"
+              className="w-full h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors"
+              disabled={loading || !email || !password}
+            >
+              {loading ? <Loader2 className="size-4 animate-spin" /> : 'Sign in'}
+            </Button>
+          </form>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading || !email || !password}
-              >
-                {loading ? <Loader2 className="size-4 animate-spin" /> : 'Sign in'}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              No account?{' '}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
-                Create one
-              </Link>
-            </p>
-          </div>
-
-          <p className="mt-6 text-center text-xs text-subtle-text">
-            By signing in, you agree to EduTask&apos;s{' '}
-            <Link href="/terms" className="underline hover:text-foreground">Terms</Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
+          <p className="mt-6 text-center text-sm text-[#6B6B6B]">
+            No account?{' '}
+            <Link href="/signup" className="text-[#4F46E5] font-medium hover:underline">
+              Create one
+            </Link>
           </p>
         </div>
+
+        <p className="mt-6 text-center text-xs text-[#A3A3A3]">
+          By signing in, you agree to EduTask&apos;s{' '}
+          <Link href="/terms" className="underline hover:text-[#6B6B6B]">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="underline hover:text-[#6B6B6B]">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
-    </main>
+    </div>
   )
 }
