@@ -627,9 +627,9 @@ export default function ChatRoomPage() {
   const isWorker = userId === task.hired_worker_id
   const isParticipant = isPoster || isWorker
   const canSendMessage = isParticipant && !['completed', 'cancelled'].includes(task.status)
-  const workerCanSubmit = isWorker && (task.status === 'in_progress' || task.status === 'hired')
-  const posterCanReview = isPoster && task.status === 'under_review'
-  const eitherCanDispute = isParticipant && ['hired', 'in_progress', 'under_review'].includes(task.status)
+  const canSubmit = isWorker && ['hired', 'in_progress'].includes(task.status)
+  const canApproveRevision = isPoster && task.status === 'under_review'
+  const canDispute = isParticipant && ['hired', 'in_progress', 'under_review'].includes(task.status)
 
   const statusBadge: Record<string, { label: string; color: string }> = {
     open: { label: 'Open', color: 'bg-emerald-500/10 text-emerald-600' },
@@ -758,28 +758,39 @@ export default function ChatRoomPage() {
           </div>
 
           <div className="border-t border-border bg-card">
-            {(posterCanReview || workerCanSubmit || eitherCanDispute) && (
+            {(canSubmit || canApproveRevision || canDispute) && (
               <div
                 className={`flex flex-wrap items-center gap-2 border-b border-border px-3 py-2 ${
-                  posterCanReview
+                  canApproveRevision
                     ? 'bg-amber-500/5'
-                    : workerCanSubmit
+                    : canSubmit
                       ? 'bg-primary/5'
                       : 'bg-background'
                 }`}
               >
-                {workerCanSubmit && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={submitWork}
-                    className="h-8 gap-1.5 rounded-xl bg-primary text-xs text-primary-foreground"
-                  >
-                    <Upload className="size-3.5" /> Submit Work
-                  </Button>
+                {canSubmit && (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={submitWork}
+                      className="h-8 gap-1.5 rounded-xl bg-primary text-xs text-primary-foreground"
+                    >
+                      <Upload className="size-3.5" /> Submit Work
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={openDispute}
+                      className="h-8 gap-1.5 rounded-xl text-xs text-red-600 hover:bg-red-500/10 hover:text-red-700"
+                    >
+                      <AlertTriangle className="size-3.5" /> Dispute
+                    </Button>
+                  </>
                 )}
 
-                {posterCanReview && (
+                {canApproveRevision && (
                   <>
                     <span className="hidden text-xs font-medium text-amber-700 sm:block">
                       Work submitted - your action:
@@ -790,7 +801,7 @@ export default function ChatRoomPage() {
                       onClick={acceptWork}
                       className="h-8 gap-1.5 rounded-xl bg-emerald-500 text-xs text-white hover:bg-emerald-600"
                     >
-                      <CheckCircle className="size-3.5" /> Accept and Pay
+                      <CheckCircle className="size-3.5" /> Approve
                     </Button>
                     <Button
                       type="button"
@@ -800,12 +811,21 @@ export default function ChatRoomPage() {
                       disabled={(task.revisions_used ?? 0) >= 2}
                       className="h-8 gap-1.5 rounded-xl text-xs"
                     >
-                      <RotateCcw className="size-3.5" /> Revise ({task.revisions_used ?? 0}/2)
+                      <RotateCcw className="size-3.5" /> Revision ({task.revisions_used ?? 0}/2)
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={openDispute}
+                      className="h-8 gap-1.5 rounded-xl text-xs text-red-600 hover:bg-red-500/10 hover:text-red-700"
+                    >
+                      <AlertTriangle className="size-3.5" /> Dispute
                     </Button>
                   </>
                 )}
 
-                {eitherCanDispute && (
+                {!canSubmit && !canApproveRevision && canDispute && (
                   <Button
                     type="button"
                     size="sm"
