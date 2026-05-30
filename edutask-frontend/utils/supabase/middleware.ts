@@ -37,6 +37,9 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
+    // Admin by email — no DB query needed
+    if (user.email === 'admin@edutask.bd') return supabaseResponse
+
     const { data: profile } = await supabase
       .from('users')
       .select('is_admin, is_banned')
@@ -79,12 +82,7 @@ export async function updateSession(request: NextRequest) {
 
   // Auth pages — redirect authenticated users
   if (user && (pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password')) {
-    const { data: authProfile } = await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-    url.pathname = authProfile?.is_admin ? '/admin' : '/dashboard'
+    url.pathname = user.email === 'admin@edutask.bd' ? '/admin' : '/dashboard'
     return NextResponse.redirect(url)
   }
 

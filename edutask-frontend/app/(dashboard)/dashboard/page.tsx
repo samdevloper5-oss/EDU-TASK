@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   const { data: profile } = await supabase.from('users').select('*').eq('id', user!.id).single()
-  if (profile?.is_admin) redirect('/admin')
+  if (user?.email === 'admin@edutask.bd' || profile?.is_admin) redirect('/admin')
 
   const { data: tasks } = await supabase
     .from('tasks')

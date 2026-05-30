@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
+const ADMIN_EMAIL = 'admin@edutask.bd'
+
 function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -27,8 +29,9 @@ function SignInForm() {
 
     try {
       const supabase = createClient()
+      const normalizedEmail = email.toLowerCase().trim()
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         password,
       })
 
@@ -48,6 +51,12 @@ function SignInForm() {
 
       if (!data.user) {
         toast.error('Sign in failed. Please try again.')
+        return
+      }
+
+      // Admin check by email — bypass users table entirely
+      if (data.user.email === ADMIN_EMAIL) {
+        router.push('/admin')
         return
       }
 
