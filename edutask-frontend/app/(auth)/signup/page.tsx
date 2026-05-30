@@ -15,7 +15,7 @@ function PasswordStrength({ password }: { password: string }) {
     { label: 'One uppercase letter', pass: /[A-Z]/.test(password) },
     { label: 'One number', pass: /[0-9]/.test(password) },
   ]
-  const score = checks.filter((check) => check.pass).length
+  const score = checks.filter((c) => c.pass).length
   const width = score === 0 ? '0%' : score === 1 ? '33%' : score === 2 ? '66%' : '100%'
   const color = score <= 1 ? '#EF4444' : score === 2 ? '#F59E0B' : '#10B981'
   const label = score === 0 ? '' : score === 1 ? 'Weak' : score === 2 ? 'Fair' : 'Strong'
@@ -26,15 +26,18 @@ function PasswordStrength({ password }: { password: string }) {
     <div className="mt-2 space-y-2">
       <div className="flex items-center gap-2">
         <div className="flex-1 h-1 bg-[#E5E5E3] rounded-full overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-300" style={{ width, backgroundColor: color }} />
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width, backgroundColor: color }}
+          />
         </div>
         {label && <span className="text-xs font-medium" style={{ color }}>{label}</span>}
       </div>
       <div className="space-y-1">
-        {checks.map((check) => (
-          <div key={check.label} className="flex items-center gap-1.5">
-            <Check className={`size-3 ${check.pass ? 'text-[#10B981]' : 'text-[#D4D4D4]'}`} />
-            <span className={`text-xs ${check.pass ? 'text-[#10B981]' : 'text-[#A3A3A3]'}`}>{check.label}</span>
+        {checks.map((c) => (
+          <div key={c.label} className="flex items-center gap-1.5">
+            <Check className={`size-3 ${c.pass ? 'text-[#10B981]' : 'text-[#D4D4D4]'}`} />
+            <span className={`text-xs ${c.pass ? 'text-[#10B981]' : 'text-[#A3A3A3]'}`}>{c.label}</span>
           </div>
         ))}
       </div>
@@ -90,7 +93,7 @@ export default function SignUpPage() {
     <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
             <span className="text-white font-bold text-sm">E</span>
           </div>
           <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
@@ -177,9 +180,7 @@ export default function SignUpPage() {
 
           <p className="mt-6 text-center text-sm text-[#6B6B6B]">
             Already have an account?{' '}
-            <Link href="/signin" className="text-[#4F46E5] font-medium hover:underline">
-              Sign in
-            </Link>
+            <Link href="/signin" className="text-[#4F46E5] font-medium hover:underline">Sign in</Link>
           </p>
         </div>
       </div>

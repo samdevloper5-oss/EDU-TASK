@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -61,7 +60,7 @@ function OTPInput({ value, onChange, onComplete }: { value: string; onChange: (v
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+          className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-[#E5E5E3] bg-white text-[#0F0F0F] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/40 focus:border-[#4F46E5] transition-all"
         />
       ))}
     </div>
@@ -125,51 +124,53 @@ function VerifyOTPContent() {
   }
 
   return (
-    <>
-      <Link href="/signup" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </Link>
+    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <Link href="/signup" className="flex items-center gap-2 text-sm text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors mb-8">
+          <ArrowLeft className="size-4" /> Back to sign up
+        </Link>
 
-      <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center shadow-md shadow-primary/20">
-          <span className="text-primary-foreground font-bold">E</span>
+        <div className="flex items-center gap-2.5 mb-8">
+          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">E</span>
+          </div>
+          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
         </div>
-        <span className="font-bold text-xl text-foreground" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
+
+        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
+          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Verify your email</h1>
+          <p className="text-[#6B6B6B] text-sm mb-6">Enter the 6-digit code sent to {email}</p>
+
+          <div className={`transition-transform ${errorShake ? 'animate-shake' : ''}`}>
+            <OTPInput value={otp} onChange={setOtp} onComplete={handleVerify} />
+          </div>
+
+          <Button
+            onClick={handleVerify}
+            className="w-full mt-6 h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors"
+            disabled={loading || otp.length !== 6}
+          >
+            {loading ? <Loader2 className="size-4 animate-spin" /> : 'Verify Email'}
+          </Button>
+
+          <div className="mt-6 text-center">
+            {countdown > 0 ? (
+              <p className="text-sm text-[#6B6B6B]">Resend code in {countdown}s</p>
+            ) : (
+              <button type="button" onClick={handleResend} className="text-sm text-[#4F46E5] hover:underline font-medium">
+                Resend code
+              </button>
+            )}
+          </div>
+        </div>
       </div>
-
-      <Card className="p-8 border-border bg-card/80 backdrop-blur-sm shadow-2xl shadow-primary/5">
-        <h2 className="text-2xl font-bold text-foreground mb-1" style={{ fontFamily: 'var(--font-heading)' }}>Verify your email</h2>
-        <p className="text-muted-foreground text-sm mb-6">Enter the 6-digit code sent to {email}</p>
-
-        <div className={`transition-transform ${errorShake ? 'animate-shake' : ''}`}>
-          <OTPInput value={otp} onChange={setOtp} onComplete={handleVerify} />
-        </div>
-
-        <Button
-          onClick={handleVerify}
-          className="w-full mt-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
-          disabled={loading || otp.length !== 6}
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify Email'}
-        </Button>
-
-        <div className="mt-6 text-center">
-          {countdown > 0 ? (
-            <p className="text-sm text-muted-foreground">Resend code in {countdown}s</p>
-          ) : (
-            <button type="button" onClick={handleResend} className="text-sm text-primary hover:underline font-medium">
-              Resend code
-            </button>
-          )}
-        </div>
-      </Card>
-    </>
+    </div>
   )
 }
 
 export default function VerifyOTPPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-[#4F46E5]" /></div>}>
       <VerifyOTPContent />
     </Suspense>
   )

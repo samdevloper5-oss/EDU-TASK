@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -10,8 +10,11 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') ?? '/dashboard'
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -75,20 +78,20 @@ export default function SignInPage() {
         return
       }
 
-      router.push('/dashboard')
+      router.push(next)
     } catch (err) {
       toast.error('Something went wrong. Please try again.')
       console.error('Sign in error:', err)
     } finally {
       setLoading(false)
     }
-  }, [email, password, router])
+  }, [email, password, router, next])
 
   return (
     <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
             <span className="text-white font-bold text-sm">E</span>
           </div>
           <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
@@ -169,5 +172,13 @@ export default function SignInPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   )
 }

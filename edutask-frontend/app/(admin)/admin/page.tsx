@@ -1,144 +1,142 @@
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { Card } from '@/components/ui/card'
 import {
-  Users,
-  ListChecks,
-  AlertTriangle,
-  FileCheck,
-  TrendingUp,
-  Shield,
-  MessageSquare,
+  Users, ListChecks, AlertTriangle, FileCheck,
+  TrendingUp, DollarSign, Shield, MessageSquare,
 } from 'lucide-react'
 
-export default async function AdminDashboardPage() {
+export default async function AdminOverviewPage() {
   const [
     { count: totalUsers },
+    { count: activeUsers },
+    { count: bannedUsers },
+    { count: openTasks },
     { count: activeTasks },
+    { count: completedTasks },
     { count: disputes },
     { count: pendingVerifications },
     { data: revenueData },
     { data: recentUsers },
     { data: recentDisputes },
+    { data: recentTransactions },
   ] = await Promise.all([
     supabaseAdmin.from('users').select('*', { head: true, count: 'exact' }),
-    supabaseAdmin
-      .from('tasks')
-      .select('*', { head: true, count: 'exact' })
-      .in('status', ['open', 'hired', 'in_progress', 'under_review']),
+    supabaseAdmin.from('users').select('*', { head: true, count: 'exact' }).eq('is_banned', false),
+    supabaseAdmin.from('users').select('*', { head: true, count: 'exact' }).eq('is_banned', true),
+    supabaseAdmin.from('tasks').select('*', { head: true, count: 'exact' }).eq('status', 'open'),
+    supabaseAdmin.from('tasks').select('*', { head: true, count: 'exact' }).in('status', ['hired', 'in_progress', 'under_review']),
+    supabaseAdmin.from('tasks').select('*', { head: true, count: 'exact' }).eq('status', 'completed'),
     supabaseAdmin.from('tasks').select('*', { head: true, count: 'exact' }).eq('status', 'disputed'),
-    supabaseAdmin
-      .from('users')
-      .select('*', { head: true, count: 'exact' })
-      .eq('student_id_verified', false)
-      .not('student_id_image_url', 'is', null),
+    supabaseAdmin.from('users').select('*', { head: true, count: 'exact' }).eq('student_id_verified', false).not('student_id_image_url', 'is', null),
     supabaseAdmin.from('transactions').select('net_amount').eq('type', 'platform_fee').eq('status', 'completed'),
-    supabaseAdmin
-      .from('users')
-      .select('id, full_name, email, created_at, trust_score, is_banned')
-      .order('created_at', { ascending: false })
-      .limit(5),
-    supabaseAdmin
-      .from('tasks')
-      .select('id, title, poster:users!tasks_poster_id_fkey(full_name), created_at')
-      .eq('status', 'disputed')
-      .order('created_at', { ascending: false })
-      .limit(5),
+    supabaseAdmin.from('users').select('id, full_name, email, created_at, trust_score, is_banned').order('created_at', { ascending: false }).limit(5),
+    supabaseAdmin.from('tasks').select('id, title, poster:users!tasks_poster_id_fkey(full_name), created_at').eq('status', 'disputed').order('created_at', { ascending: false }).limit(5),
+    supabaseAdmin.from('transactions').select('id, type, amount, net_amount, status, created_at, user:users!transactions_user_id_fkey(full_name)').order('created_at', { ascending: false }).limit(8),
   ])
 
   const totalRevenue = (revenueData ?? []).reduce((sum, tx) => sum + (Number(tx.net_amount) || 0), 0)
-  const users = (recentUsers ?? []) as Array<{
-    id: string
-    full_name: string | null
-    email: string
-    is_banned: boolean
-  }>
-  const disputesList = (recentDisputes ?? []) as Array<{
-    id: string
-    title: string
-    created_at: string
-    poster: { full_name?: string } | null
-  }>
 
   const stats = [
-    { label: 'Total Users', value: totalUsers ?? 0, sub: 'all accounts', icon: Users, href: '/admin/users' },
-    { label: 'Active Tasks', value: activeTasks ?? 0, sub: 'open + in flight', icon: ListChecks, href: '/admin/tasks' },
-    { label: 'Open Disputes', value: disputes ?? 0, sub: 'needs review', icon: AlertTriangle, href: '/admin/disputes' },
-    { label: 'ID Verifications', value: pendingVerifications ?? 0, sub: 'pending review', icon: FileCheck, href: '/admin/verifications' },
-    { label: 'Platform Revenue', value: `৳${totalRevenue.toLocaleString()}`, sub: 'all time', icon: TrendingUp, href: '/admin/transactions' },
+    { label: 'Total Users', value: totalUsers ?? 0, sub: `${bannedUsers ?? 0} banned`, icon: Users, href: '/admin/users', color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Active Tasks', value: activeTasks ?? 0, sub: `${openTasks ?? 0} open`, icon: ListChecks, href: '/admin/tasks', color: 'text-violet-600', bg: 'bg-violet-50' },
+    { label: 'Completed', value: completedTasks ?? 0, sub: 'lifetime', icon: Shield, href: '/admin/tasks?status=completed', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Disputes', value: disputes ?? 0, sub: 'needs review', icon: AlertTriangle, href: '/admin/disputes', color: 'text-red-600', bg: 'bg-red-50' },
+    { label: 'Verifications', value: pendingVerifications ?? 0, sub: 'pending review', icon: FileCheck, href: '/admin/verifications', color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Revenue', value: `৳${totalRevenue.toLocaleString()}`, sub: 'all time', icon: TrendingUp, href: '/admin/transactions', color: 'text-indigo-600', bg: 'bg-indigo-50' },
   ]
 
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-label mb-2">Admin</p>
         <h1 className="text-2xl font-bold text-[#0F0F0F] tracking-tight">Overview</h1>
-        <p className="text-sm text-[#6B6B6B] mt-1">Platform health at a glance</p>
+        <p className="text-[#6B6B6B] text-sm mt-1">Platform health at a glance</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href}>
-            <Card className="p-5 hover:border-[#4F46E5]/30 transition-colors">
-              <stat.icon className="size-4 text-[#4F46E5] mb-3" />
+            <div className="bg-white border border-[#E5E5E3] rounded-xl p-5 hover:border-[#4F46E5]/30 transition-colors group">
+              <div className={`size-9 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}>
+                <stat.icon className={`size-4 ${stat.color}`} />
+              </div>
               <p className="text-2xl font-bold text-[#0F0F0F] tracking-tight">{stat.value}</p>
               <p className="text-sm font-medium text-[#0F0F0F] mt-0.5">{stat.label}</p>
               <p className="text-xs text-[#A3A3A3] mt-0.5">{stat.sub}</p>
-            </Card>
+            </div>
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold">Recent Users</h2>
-            <Link href="/admin/users" className="text-xs text-[#4F46E5] hover:underline">
-              See all
-            </Link>
+            <h2 className="font-semibold text-sm text-[#0F0F0F]">New Users</h2>
+            <Link href="/admin/users" className="text-xs text-[#4F46E5] hover:underline">See all</Link>
           </div>
           <div className="space-y-3">
-            {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#0F0F0F] truncate">
-                    {user.full_name ?? user.email}
-                  </p>
-                  <p className="text-xs text-[#A3A3A3] truncate">{user.email}</p>
+            {(recentUsers ?? []).length === 0 ? (
+              <p className="text-sm text-[#A3A3A3] py-4 text-center">No users yet</p>
+            ) : (
+              (recentUsers ?? []).map((u: any) => (
+                <div key={u.id} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[#0F0F0F] truncate">{u.full_name ?? u.email}</p>
+                    <p className="text-xs text-[#A3A3A3] truncate">{u.email}</p>
+                  </div>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${u.is_banned ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                    {u.is_banned ? 'Banned' : 'Active'}
+                  </span>
                 </div>
-                <span className={`text-[10px] px-2 py-1 rounded font-medium ${user.is_banned ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                  {user.is_banned ? 'Banned' : 'Active'}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-5">
+        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold">Open Disputes</h2>
-            <Link href="/admin/disputes" className="text-xs text-[#4F46E5] hover:underline">
-              Resolve
-            </Link>
+            <h2 className="font-semibold text-sm text-[#0F0F0F]">Open Disputes</h2>
+            <Link href="/admin/disputes" className="text-xs text-[#4F46E5] hover:underline">Resolve</Link>
           </div>
           {(recentDisputes ?? []).length === 0 ? (
             <p className="text-sm text-[#A3A3A3] py-6 text-center">No open disputes</p>
           ) : (
             <div className="space-y-3">
-              {disputesList.map((task) => (
-                <Link key={task.id} href={`/admin/disputes/${task.id}`} className="block group">
-                  <p className="text-sm font-medium text-[#0F0F0F] group-hover:text-[#4F46E5] transition-colors truncate">
-                    {task.title}
-                  </p>
-                  <p className="text-xs text-[#A3A3A3]">
-                    {(task as any).poster?.full_name ?? 'Unknown'} · {new Date(task.created_at).toLocaleDateString()}
-                  </p>
+              {(recentDisputes ?? []).map((d: any) => (
+                <Link key={d.id} href={`/admin/disputes/${d.id}`} className="block group">
+                  <p className="text-sm font-medium text-[#0F0F0F] group-hover:text-[#4F46E5] transition-colors truncate">{d.title}</p>
+                  <p className="text-xs text-[#A3A3A3]">{d.poster?.full_name ?? 'Unknown'} · {new Date(d.created_at).toLocaleDateString()}</p>
                 </Link>
               ))}
             </div>
           )}
-        </Card>
+        </div>
+
+        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm text-[#0F0F0F]">Recent Transactions</h2>
+            <Link href="/admin/transactions" className="text-xs text-[#4F46E5] hover:underline">See all</Link>
+          </div>
+          <div className="space-y-2.5">
+            {(recentTransactions ?? []).length === 0 ? (
+              <p className="text-sm text-[#A3A3A3] py-4 text-center">No transactions yet</p>
+            ) : (
+              (recentTransactions ?? []).map((tx: any) => (
+                <div key={tx.id} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#0F0F0F] capitalize">{tx.type.replace(/_/g, ' ')}</p>
+                    <p className="text-[10px] text-[#A3A3A3] truncate">{tx.user?.full_name ?? '—'}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-xs font-bold ${Number(tx.net_amount) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {Number(tx.net_amount) >= 0 ? '+' : ''}৳{Math.abs(Number(tx.net_amount)).toLocaleString()}
+                    </p>
+                    <p className={`text-[10px] ${tx.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>{tx.status}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
