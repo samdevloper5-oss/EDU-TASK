@@ -15,35 +15,37 @@ const taskExamples = [
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen bg-[#F8F8F7] text-[#0F0F0F]">
-      <nav className="sticky top-0 z-30 border-b border-[#E5E5E3] bg-[#F8F8F7]/90 backdrop-blur-sm">
+    <main className="min-h-screen bg-background text-foreground">
+      <nav className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
-              <span className="text-sm font-bold text-white">E</span>
+            <div className="size-8 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-sm font-bold text-primary-foreground">E</span>
             </div>
-            <span className="text-sm font-bold tracking-tight md:text-base">EduTask</span>
+            <span className="text-sm font-bold tracking-tight md:text-base" style={{ fontFamily: 'var(--font-heading)' }}>
+              EduTask
+            </span>
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            <a href="#how-it-works" className="text-sm text-[#6B6B6B] hover:text-[#0F0F0F]">
+            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               How it works
             </a>
-            <a href="#tasks" className="text-sm text-[#6B6B6B] hover:text-[#0F0F0F]">
+            <a href="#tasks" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Task examples
             </a>
-            <a href="#why" className="text-sm text-[#6B6B6B] hover:text-[#0F0F0F]">
+            <a href="#why" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Why EduTask
             </a>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/signin" className="text-sm font-medium text-[#6B6B6B] hover:text-[#0F0F0F]">
+            <Link href="/signin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="rounded-lg bg-[#0F0F0F] px-4 py-2 text-sm font-medium text-white hover:bg-[#2a2a2a]"
+              className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-[#222222] transition-colors"
             >
               Get started
             </Link>
@@ -51,10 +53,10 @@ export function LandingPage() {
         </div>
       </nav>
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:px-10 md:py-24">
+      <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:px-10 md:py-24">
         <div>
           <div className="inline-flex items-center gap-2 text-label mb-6">
-            <span className="h-px w-4 bg-[#4F46E5]" />
+            <span className="h-px w-4 bg-primary" />
             Bangladesh · Students only
           </div>
 
@@ -66,34 +68,34 @@ export function LandingPage() {
             Stay on campus.
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg text-[#6B6B6B]">
+          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
             EduTask connects Bangladeshi students with paid micro-tasks: design, coding, writing, research, and campus help. Escrow is built in. Verification is real.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#4F46E5] px-5 py-3 text-sm font-medium text-white hover:bg-[#4338CA]"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:bg-primary-dark transition-colors"
             >
               Start earning <ArrowRight className="size-4" />
             </Link>
-            <Link href="/tasks" className="text-sm font-medium text-[#6B6B6B] hover:text-[#0F0F0F]">
+            <Link href="/tasks" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Browse tasks →
             </Link>
           </div>
 
-          <div className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-[#E5E5E3] pt-8">
+          <div className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-border pt-8">
             <div>
-              <p className="text-2xl font-bold">200৳+</p>
-              <p className="text-xs text-[#A3A3A3]">Minimum task budget</p>
+              <p className="text-2xl font-bold tracking-tight">200৳+</p>
+              <p className="text-xs text-subtle-text">Minimum task budget</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">8%</p>
-              <p className="text-xs text-[#A3A3A3]">Platform fee</p>
+              <p className="text-2xl font-bold tracking-tight">8%</p>
+              <p className="text-xs text-subtle-text">Platform fee</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">bKash</p>
-              <p className="text-xs text-[#A3A3A3]">Withdrawals</p>
+              <p className="text-2xl font-bold tracking-tight">bKash</p>
+              <p className="text-xs text-subtle-text">Withdrawals</p>
             </div>
           </div>
         </div>
@@ -106,13 +108,13 @@ export function LandingPage() {
               style={{ marginLeft: index === 1 ? '2rem' : index === 2 ? '1rem' : '0' }}
             >
               <div className="flex items-start justify-between gap-4">
-                <span className="text-label rounded-md bg-[#F4F4F2] px-2.5 py-1 text-[#4F46E5]">
+                <span className="text-label rounded-md bg-[#F3F1EC] px-2.5 py-1 text-primary">
                   {task.category}
                 </span>
-                <p className="text-lg font-bold">৳{task.budget}</p>
+                <p className="text-lg font-bold tracking-tight">৳{task.budget}</p>
               </div>
-              <h2 className="mt-3 text-sm font-semibold leading-snug">{task.title}</h2>
-              <p className="mt-2 text-xs text-[#A3A3A3]">
+              <h2 className="mt-3 text-sm font-semibold leading-snug text-foreground">{task.title}</h2>
+              <p className="mt-2 text-xs text-subtle-text">
                 {task.university} · trust score {task.trust}
               </p>
             </article>
@@ -120,7 +122,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="why" className="border-y border-[#E5E5E3] bg-white">
+      <section id="why" className="border-y border-border bg-background">
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:grid-cols-[0.9fr_1.1fr] md:px-10">
           <div>
             <div className="text-label mb-4">Why EduTask</div>
@@ -128,24 +130,24 @@ export function LandingPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="card p-5">
-              <Shield className="size-4 text-[#4F46E5]" />
+              <Shield className="size-4 text-primary" />
               <p className="mt-3 text-sm font-semibold">Escrow first</p>
-              <p className="mt-1 text-sm text-[#6B6B6B]">Money stays locked until the poster accepts the work.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Money stays locked until the poster accepts the work.</p>
             </div>
             <div className="card p-5">
-              <Check className="size-4 text-[#4F46E5]" />
+              <Check className="size-4 text-primary" />
               <p className="mt-3 text-sm font-semibold">Verified students</p>
-              <p className="mt-1 text-sm text-[#6B6B6B]">Profiles, student ID review, and admin moderation stay in the loop.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Profiles, student ID review, and admin moderation stay in the loop.</p>
             </div>
             <div className="card p-5">
-              <Clock className="size-4 text-[#4F46E5]" />
+              <Clock className="size-4 text-primary" />
               <p className="mt-3 text-sm font-semibold">Fast turnaround</p>
-              <p className="mt-1 text-sm text-[#6B6B6B]">Small tasks. Clear deadlines. No enterprise baggage.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Small tasks. Clear deadlines. No enterprise baggage.</p>
             </div>
             <div className="card p-5">
-              <Star className="size-4 text-[#4F46E5]" />
+              <Star className="size-4 text-primary" />
               <p className="mt-3 text-sm font-semibold">Trust scores</p>
-              <p className="mt-1 text-sm text-[#6B6B6B]">Reputation grows from completed work and reviews.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Reputation grows from completed work and reviews.</p>
             </div>
           </div>
         </div>
@@ -165,13 +167,13 @@ export function LandingPage() {
             <div key={title} className="card p-5">
               <p className="text-label mb-2">0{index + 1}</p>
               <h3 className="text-sm font-semibold">{title}</h3>
-              <p className="mt-2 text-sm text-[#6B6B6B]">{desc}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id="tasks" className="bg-white border-y border-[#E5E5E3]">
+      <section id="tasks" className="border-y border-border bg-background">
         <div className="mx-auto max-w-7xl px-6 py-16 md:px-10">
           <div className="mb-8 max-w-xl">
             <div className="text-label mb-4">Task examples</div>
@@ -181,19 +183,19 @@ export function LandingPage() {
             {taskExamples.map((task) => (
               <div key={task} className="card p-5">
                 <p className="text-sm font-semibold">{task}</p>
-                <p className="mt-3 text-xs text-[#A3A3A3]">Example task — budget set by the poster</p>
+                <p className="mt-3 text-xs text-subtle-text">Example task — budget set by the poster</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-[#E5E5E3]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-[#6B6B6B] md:flex-row md:items-center md:justify-between md:px-10">
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10">
           <p>EduTask · student task marketplace for Bangladesh</p>
           <div className="flex gap-4">
-            <Link href="/signin" className="hover:text-[#0F0F0F]">Sign in</Link>
-            <Link href="/signup" className="hover:text-[#0F0F0F]">Get started</Link>
+            <Link href="/signin" className="hover:text-foreground">Sign in</Link>
+            <Link href="/signup" className="hover:text-foreground">Get started</Link>
           </div>
         </div>
       </footer>

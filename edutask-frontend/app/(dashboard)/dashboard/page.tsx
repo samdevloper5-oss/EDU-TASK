@@ -36,10 +36,10 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div>
         <p className="text-label mb-2">Dashboard</p>
-        <h1 className="text-2xl font-bold text-[#0F0F0F] tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Welcome back, {profile?.full_name?.split(' ')[0] ?? 'Student'}
         </h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">
+        <p className="mt-1 text-sm text-muted-foreground">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
       </div>
@@ -48,13 +48,13 @@ export default async function DashboardPage() {
         {statCards.map((stat) => (
           <Card key={stat.label} className="p-5">
             <div className="flex items-start justify-between">
-              <div className="size-9 rounded-lg bg-[#F4F4F2] flex items-center justify-center">
-                <stat.icon className="size-4 text-[#6B6B6B]" />
+              <div className="size-9 rounded-lg bg-[#F3F1EC] flex items-center justify-center">
+                <stat.icon className="size-4 text-muted-foreground" />
               </div>
             </div>
-            <p className="mt-5 text-2xl font-bold text-[#0F0F0F] tracking-tight">{stat.value}</p>
-            <p className="mt-1 text-sm text-[#6B6B6B]">{stat.label}</p>
-            <p className="mt-1 text-xs text-[#A3A3A3]">{stat.sub}</p>
+            <p className="mt-5 text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+            <p className="mt-1 text-xs text-subtle-text">{stat.sub}</p>
           </Card>
         ))}
       </div>
@@ -62,13 +62,13 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap gap-3">
         <Link
           href="/post-task"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4F46E5] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4338CA]"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary-dark"
         >
           Post task
         </Link>
         <Link
           href="/tasks"
-          className="inline-flex items-center gap-2 rounded-lg border border-[#E5E5E3] bg-white px-4 py-2.5 text-sm font-medium text-[#0F0F0F] hover:bg-[#F4F4F2]"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-[#F3F1EC]"
         >
           Browse tasks <ArrowRight className="size-4" />
         </Link>
@@ -76,8 +76,8 @@ export default async function DashboardPage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#0F0F0F]">Available tasks</h2>
-          <Link href="/tasks" className="text-xs text-[#4F46E5] hover:underline">
+          <h2 className="text-sm font-semibold text-foreground">Available tasks</h2>
+          <Link href="/tasks" className="text-xs text-primary hover:underline">
             See all
           </Link>
         </div>
@@ -88,29 +88,29 @@ export default async function DashboardPage() {
 
             return (
               <Link key={task.id} href={`/tasks/${task.id}`} className="block">
-                <Card className="h-full p-5 transition-colors hover:border-[#4F46E5]/30">
+                <Card className="h-full p-5 transition-colors hover:border-primary/30">
                   <div className="mb-3 flex items-start justify-between">
-                    <span className="rounded-md bg-[#F4F4F2] px-2.5 py-1 text-xs font-semibold text-[#4F46E5]">
+                    <span className="rounded-md bg-[#F3F1EC] px-2.5 py-1 text-xs font-semibold text-primary">
                       {task.category}
                     </span>
-                    <span className="text-xs text-[#A3A3A3]">
+                    <span className="text-xs text-subtle-text">
                       {daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}
                     </span>
                   </div>
-                  <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[#0F0F0F]">
+                  <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
                     {task.title}
                   </h3>
-                  <p className="mt-2 line-clamp-2 text-xs text-[#6B6B6B]">{task.description}</p>
-                  <div className="mt-4 flex items-center justify-between border-t border-[#E5E5E3] pt-3">
+                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{task.description}</p>
+                  <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
                     <div className="flex items-center gap-2">
-                      <div className="size-6 overflow-hidden rounded-full bg-[#4F46E5]/10 flex items-center justify-center text-[10px] font-bold text-[#4F46E5]">
+                      <div className="size-6 overflow-hidden rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                         {task.poster?.full_name?.[0]?.toUpperCase() ?? 'U'}
                       </div>
-                      <span className="max-w-[88px] truncate text-xs text-[#6B6B6B]">
+                      <span className="max-w-[88px] truncate text-xs text-muted-foreground">
                         {task.poster?.full_name ?? 'Unknown'}
                       </span>
                     </div>
-                    <p className="text-sm font-bold text-[#0F0F0F]">৳{task.budget?.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-foreground">৳{task.budget?.toLocaleString()}</p>
                   </div>
                 </Card>
               </Link>
@@ -120,16 +120,16 @@ export default async function DashboardPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-[#0F0F0F]">Recent activity</h2>
-        <Card className="divide-y divide-[#E5E5E3] overflow-hidden">
+        <h2 className="text-sm font-semibold text-foreground">Recent activity</h2>
+        <Card className="divide-y divide-border overflow-hidden">
           {(transactions ?? []).length === 0 && (
-            <div className="p-6 text-center text-sm text-[#A3A3A3]">No transactions yet</div>
+            <div className="p-6 text-center text-sm text-subtle-text">No transactions yet</div>
           )}
           {(transactions ?? []).map((tx: any) => (
             <div key={tx.id} className="flex items-center justify-between px-5 py-4">
               <div>
-                <p className="text-sm font-medium text-[#0F0F0F] capitalize">{tx.type.replace(/_/g, ' ')}</p>
-                <p className="text-xs text-[#A3A3A3]">{new Date(tx.created_at).toLocaleDateString()}</p>
+                <p className="text-sm font-medium text-foreground capitalize">{tx.type.replace(/_/g, ' ')}</p>
+                <p className="text-xs text-subtle-text">{new Date(tx.created_at).toLocaleDateString()}</p>
               </div>
               <p className={`text-sm font-bold ${tx.net_amount >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                 {tx.net_amount >= 0 ? '+' : '-'}৳{Math.abs(tx.net_amount).toLocaleString()}

@@ -87,7 +87,7 @@ function NotificationBell() {
       <button
         type="button"
         onClick={() => setShowDropdown((v) => !v)}
-        className="relative p-2 rounded-xl hover:bg-muted transition-colors"
+        className="relative p-2 rounded-lg hover:bg-[#F3F1EC] transition-colors duration-150"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
         <Bell className="size-5 text-muted-foreground" />
@@ -114,8 +114,8 @@ function NotificationBell() {
           />
           <div
             className="
-              fixed inset-x-0 bottom-0 top-auto z-20 overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl
-              md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-96 md:rounded-2xl
+              fixed inset-x-0 bottom-0 top-auto z-20 overflow-hidden rounded-t-2xl border border-border bg-card
+              md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-96 md:rounded-xl
             "
           >
             <div className="absolute inset-x-0 top-0 flex justify-center pb-1 pt-2 pointer-events-none md:hidden">
@@ -229,7 +229,7 @@ function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-xl hover:bg-muted p-1.5 transition-colors"
+        className="flex items-center gap-2 rounded-lg hover:bg-[#F3F1EC] p-1.5 transition-colors duration-150"
         aria-label="User menu"
       >
         <div className="size-8 overflow-hidden rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
@@ -245,14 +245,14 @@ function UserMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-2xl shadow-xl z-20 overflow-hidden py-1">
-            <Link href="/profile" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted transition-colors">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl z-20 overflow-hidden py-1">
+            <Link href="/profile" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-[#F3F1EC] transition-colors duration-150">
               <User className="w-4 h-4 text-muted-foreground" /> Profile
             </Link>
-            <Link href="/wallet" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted transition-colors">
+            <Link href="/wallet" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-[#F3F1EC] transition-colors duration-150">
               <Wallet className="w-4 h-4 text-muted-foreground" /> Wallet
             </Link>
-            <Link href="/chat" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted transition-colors">
+            <Link href="/chat" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-[#F3F1EC] transition-colors duration-150">
               <MessageCircle className="w-4 h-4 text-muted-foreground" /> Messages
             </Link>
             <div className="border-t border-border my-1" />
@@ -274,7 +274,7 @@ const MemoUserMenu = memo(UserMenu)
 
 export const TopBar = memo(function TopBar() {
   return (
-    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border px-6 py-3 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border px-6 py-3 flex items-center justify-between gap-4">
       <div className="flex-1" />
       <div className="flex items-center gap-2">
         <MemoNotificationBell />

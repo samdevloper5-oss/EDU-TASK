@@ -35,12 +35,12 @@ export const Sidebar = memo(function Sidebar() {
   const isAdmin = user?.is_admin ?? false
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-card z-40">
-      <div className="p-6 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-background z-40">
+      <div className="p-6 flex items-center gap-2.5 border-b border-border">
+        <div className="w-8 h-8 rounded-md bg-[#4F46E5] flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-sm">E</span>
         </div>
-        <span className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
+        <span className="font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
       </div>
 
       <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
@@ -51,10 +51,10 @@ export const Sidebar = memo(function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
                 active
                   ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-[#F3F1EC]'
               )}
             >
               <item.icon className="w-5 h-5" />
@@ -66,10 +66,10 @@ export const Sidebar = memo(function Sidebar() {
           <Link
             href="/admin"
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
               pathname.startsWith('/admin')
                 ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                : 'text-muted-foreground hover:text-foreground hover:bg-[#F3F1EC]'
             )}
           >
             <Shield className="w-5 h-5" />
@@ -81,7 +81,7 @@ export const Sidebar = memo(function Sidebar() {
       <div className="p-4 border-t border-border">
         <button
           onClick={signOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-[#F3F1EC] transition-colors duration-150 w-full"
         >
           <LogOut className="w-5 h-5" />
           Sign Out
