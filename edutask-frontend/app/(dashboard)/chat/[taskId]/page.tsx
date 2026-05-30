@@ -468,10 +468,9 @@ export default function ChatRoomPage() {
     }
 
     toast.success('Work submitted for review!')
-    const refreshed = await fetch(`/api/tasks/${taskId}`)
-    const refreshedJson = await refreshed.json()
-    if (refreshedJson.success) {
-      setTask(refreshedJson.data as ChatTask)
+    // Use the response data directly — no need for extra refetch
+    if (json.data) {
+      setTask(json.data as ChatTask)
     } else {
       setTask((prev) => (prev ? { ...prev, status: 'under_review' } : prev))
     }
@@ -563,16 +562,22 @@ export default function ChatRoomPage() {
     const allowedTypes = [
       'image/jpeg',
       'image/png',
+      'image/gif',
       'image/webp',
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain',
       'application/zip',
+      'application/x-zip-compressed',
+      'application/x-rar-compressed',
+      'application/vnd.rar',
     ]
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    const allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar']
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('File type not allowed. Use JPG, PNG, PDF, DOC, DOCX, TXT, or ZIP.')
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext ?? '')) {
+      toast.error('File type not allowed. Use JPG, PNG, PDF, DOC, DOCX, TXT, ZIP, or RAR.')
       return
     }
 

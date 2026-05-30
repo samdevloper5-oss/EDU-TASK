@@ -30,6 +30,7 @@ export async function updateSession(request: NextRequest) {
   const url = request.nextUrl.clone()
   const pathname = url.pathname
 
+  // Admin routes — strict auth + role check
   if (pathname.startsWith('/admin')) {
     if (!user) {
       url.pathname = '/signin'
@@ -50,6 +51,12 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Skip auth checks for signout — let route handler clear cookies
+  if (pathname === '/api/auth/signout') {
+    return supabaseResponse
+  }
+
+  // Protected routes
   const protectedPaths = [
     '/dashboard',
     '/tasks',
@@ -59,9 +66,10 @@ export async function updateSession(request: NextRequest) {
     '/leaderboard',
     '/wallet',
     '/profile',
+    '/onboarding',
   ]
 
-  const isProtected = protectedPaths.some((path) => pathname.startsWith(path))
+  const isProtected = protectedPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))
 
   if (!user && isProtected) {
     url.pathname = '/signin'
@@ -69,7 +77,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && (pathname === '/signin' || pathname === '/signup')) {
+  // Auth pages — redirect authenticated users
+  if (user && (pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password')) {
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
