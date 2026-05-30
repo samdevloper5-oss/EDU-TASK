@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyOTPSchema } from '@/lib/validations/auth.schema'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { rateLimitByIP } from '@/lib/rate-limit'
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   const { email, token, type } = parsed.data
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.verifyOtp({
     email: email.toLowerCase().trim(),
@@ -56,3 +56,4 @@ export async function POST(request: Request) {
     needsOnboarding: true,
   })
 }
+

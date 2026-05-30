@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, LogOut, User, MessageCircle, Wallet, X } from 'lucide-react'
@@ -283,3 +283,4 @@ export const TopBar = memo(function TopBar() {
     </header>
   )
 })
+

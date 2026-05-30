@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/api-auth'
 import { apiErr, apiOk } from '@/lib/api-route'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { Application, Task, User } from '@/types'
 
@@ -36,7 +36,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('tasks')
@@ -79,3 +79,4 @@ export async function GET(
 
   return apiOk({ ...task, applications })
 }
+

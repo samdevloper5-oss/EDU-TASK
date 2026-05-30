@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Star, Shield, Award, Loader2, Camera } from 'lucide-react'
@@ -253,3 +253,4 @@ export default function ProfilePage() {
     </div>
   )
 }
+

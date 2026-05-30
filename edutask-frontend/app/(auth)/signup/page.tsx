@@ -1,47 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
-    { label: 'Min 8 chars', pass: password.length >= 8 },
-    { label: 'Uppercase', pass: /[A-Z]/.test(password) },
-    { label: 'Number', pass: /[0-9]/.test(password) },
-    { label: 'Symbol', pass: /[^A-Za-z0-9]/.test(password) },
+    { label: 'At least 8 characters', pass: password.length >= 8 },
+    { label: 'One uppercase letter', pass: /[A-Z]/.test(password) },
+    { label: 'One number', pass: /[0-9]/.test(password) },
   ]
-  const filled = checks.filter((c) => c.pass).length
-  const strengthLabel = filled === 0 ? '' : filled === 1 ? 'Weak' : filled === 2 ? 'Fair' : filled === 3 ? 'Good' : 'Strong'
-  const strengthColor = filled <= 1 ? 'bg-red-500' : filled === 2 ? 'bg-amber-500' : filled === 3 ? 'bg-blue-500' : 'bg-emerald-500'
-  const textColor = filled <= 1 ? 'text-red-500' : filled === 2 ? 'text-amber-500' : filled === 3 ? 'text-blue-500' : 'text-emerald-500'
+  const score = checks.filter((check) => check.pass).length
+  const width = score === 0 ? '0%' : score === 1 ? '33%' : score === 2 ? '66%' : '100%'
+  const color = score <= 1 ? '#EF4444' : score === 2 ? '#F59E0B' : '#10B981'
+  const label = score === 0 ? '' : score === 1 ? 'Weak' : score === 2 ? 'Fair' : 'Strong'
 
   if (!password) return null
 
   return (
     <div className="mt-2 space-y-2">
-      <div className="flex gap-1">
-        {checks.map((check, i) => (
-          <div
-            key={check.label}
-            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < filled ? strengthColor : 'bg-border'}`}
-          />
-        ))}
-        {strengthLabel && (
-          <span className={`text-xs font-semibold ml-2 ${textColor} whitespace-nowrap`}>{strengthLabel}</span>
-        )}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1 bg-[#E5E5E3] rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-300" style={{ width, backgroundColor: color }} />
+        </div>
+        {label && <span className="text-xs font-medium" style={{ color }}>{label}</span>}
       </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-1">
-        {checks.map((c) => (
-          <span key={c.label} className={`text-xs flex items-center gap-1 ${c.pass ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-            <span>{c.pass ? '✓' : '○'}</span> {c.label}
-          </span>
+      <div className="space-y-1">
+        {checks.map((check) => (
+          <div key={check.label} className="flex items-center gap-1.5">
+            <Check className={`size-3 ${check.pass ? 'text-[#10B981]' : 'text-[#D4D4D4]'}`} />
+            <span className={`text-xs ${check.pass ? 'text-[#10B981]' : 'text-[#A3A3A3]'}`}>{check.label}</span>
+          </div>
         ))}
       </div>
     </div>
@@ -54,90 +48,141 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) return
+
     if (password !== confirmPassword) {
       toast.error('Passwords do not match')
       return
     }
     if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-      toast.error('Password must be at least 8 characters with an uppercase letter and a number')
+      toast.error('Password must be at least 8 characters with one uppercase letter and one number')
       return
     }
+
     setLoading(true)
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
       })
       const data = await res.json()
+
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Registration failed')
+        throw new Error(data.error ?? 'Registration failed')
       }
+
       toast.success('Check your email for a 6-digit verification code')
-      setTimeout(() => {
-        router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
-      }, 500)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Registration failed')
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      router.push(`/verify-otp?email=${encodeURIComponent(email.trim())}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Registration failed')
       setLoading(false)
     }
-  }
+  }, [name, email, password, confirmPassword, router])
 
   return (
-    <>
-      <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
-        <ArrowLeft className="w-4 h-4" /> Back to home
-      </Link>
-
-      <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center shadow-md shadow-primary/20">
-          <span className="text-primary-foreground font-bold">E</span>
+    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm">
+        <div className="flex items-center gap-2.5 mb-10">
+          <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">E</span>
+          </div>
+          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
         </div>
-        <span className="font-bold text-xl text-foreground" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
+
+        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
+          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Create account</h1>
+          <p className="text-[#6B6B6B] text-sm mb-8">Join Bangladesh&apos;s student task marketplace</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label className="text-[#0F0F0F] text-sm font-medium">Full Name</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                placeholder="Your full name"
+              />
+            </div>
+
+            <div>
+              <Label className="text-[#0F0F0F] text-sm font-medium">Email</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                placeholder="you@university.edu"
+              />
+            </div>
+
+            <div>
+              <Label className="text-[#0F0F0F] text-sm font-medium">Password</Label>
+              <div className="relative mt-1.5">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  className="h-10 bg-white border-[#E5E5E3] rounded-lg text-sm pr-10 focus-visible:ring-[#4F46E5]"
+                  placeholder="Min 8 chars, uppercase, number"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-[#0F0F0F] transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              <PasswordStrength password={password} />
+            </div>
+
+            <div>
+              <Label className="text-[#0F0F0F] text-sm font-medium">Confirm Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                placeholder="Re-enter password"
+              />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors mt-2"
+              disabled={loading || !name || !email || !password || !confirmPassword || password !== confirmPassword}
+            >
+              {loading ? <Loader2 className="size-4 animate-spin" /> : 'Create account'}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-[#6B6B6B]">
+            Already have an account?{' '}
+            <Link href="/signin" className="text-[#4F46E5] font-medium hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
-
-      <Card className="p-8 border-border bg-card/80 backdrop-blur-sm shadow-2xl shadow-primary/5">
-        <h2 className="text-2xl font-bold text-foreground mb-1" style={{ fontFamily: 'var(--font-heading)' }}>Create account</h2>
-        <p className="text-muted-foreground text-sm mb-8">Join Bangladesh&apos;s student task marketplace</p>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <Label className="text-foreground">Full Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1.5 bg-background border-border" placeholder="Your full name" />
-          </div>
-          <div>
-            <Label className="text-foreground">Email</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1.5 bg-background border-border" placeholder="you@university.edu" />
-          </div>
-          <div>
-            <Label className="text-foreground">Password</Label>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1.5 bg-background border-border" placeholder="Min 8 chars, uppercase, number" />
-            <PasswordStrength password={password} />
-          </div>
-          <div>
-            <Label className="text-foreground">Confirm Password</Label>
-            <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="mt-1.5 bg-background border-border" placeholder="Re-enter password" />
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
-            disabled={loading || !name || !email || !password || !confirmPassword}
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account'}
-          </Button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link href="/signin" className="text-primary hover:underline font-medium">
-            Sign In
-          </Link>
-        </p>
-      </Card>
-    </>
+    </div>
   )
 }

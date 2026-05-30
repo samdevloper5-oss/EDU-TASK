@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/api-auth'
 import { apiErr, apiOk, parseJsonBody, parsePagination, paginationFrom } from '@/lib/api-route'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { TaskCategory } from '@/types'
 import { sanitizeText } from '@/lib/utils'
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   const search = searchParams.get('search')?.trim()
   const { page, limit, from, to } = parsePagination(searchParams)
 
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   let query = supabase
     .from('tasks')
     .select(`*, poster:users!tasks_poster_id_fkey(${POSTER_FIELDS})`, { count: 'exact' })
@@ -106,3 +106,4 @@ export async function POST(request: Request) {
 
   return apiOk(task, { status: 201 })
 }
+

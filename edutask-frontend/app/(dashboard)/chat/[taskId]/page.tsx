@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import type { Message, Task } from '@/types'
 
 type ChatTask = Pick<
@@ -199,6 +199,47 @@ function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
   )
 }
 
+function FileAttachment({
+  filePath,
+  fileName,
+}: {
+  filePath: string
+  fileName: string | null | undefined
+}) {
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      const res = await fetch(
+        `/api/files/signed-url?path=${encodeURIComponent(filePath)}&bucket=task-files`
+      )
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        toast.error('Download link expired. Ask worker to re-upload.')
+        return
+      }
+
+      window.open(json.url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleDownload}
+      disabled={downloading}
+      className="flex items-center gap-2 text-sm underline underline-offset-2 hover:no-underline transition-all"
+    >
+      {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Paperclip className="size-3.5" />}
+      {fileName ?? 'Download attachment'}
+    </button>
+  )
+}
+
 export default function ChatRoomPage() {
   const params = useParams()
   const supabase = useMemo(() => createClient(), [])
@@ -218,6 +259,7 @@ export default function ChatRoomPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -263,8 +305,16 @@ export default function ChatRoomPage() {
   }, [supabase, taskId])
 
   useEffect(() => {
+    if (!userId) return
+
+    if (channelRef.current) {
+      void supabase.removeChannel(channelRef.current)
+    }
+
     const channel = supabase
-      .channel(`messages:${taskId}`)
+      .channel(`chat-room-${taskId}`, {
+        config: { broadcast: { self: false } },
+      })
       .on(
         'postgres_changes',
         {
@@ -274,20 +324,13 @@ export default function ChatRoomPage() {
           filter: `task_id=eq.${taskId}`,
         },
         async (payload) => {
-          const newId = (payload.new as { id: string }).id
-
-          setMessages((prev) => {
-            if (prev.some((message) => message.id === newId)) {
-              return prev
-            }
-
-            return prev
-          })
+          const newMsg = payload.new as { id: string; sender_id: string }
+          if (newMsg.sender_id === userId) return
 
           const { data } = await supabase
             .from('messages')
             .select('*, sender:users!messages_sender_id_fkey(full_name, profile_photo_url)')
-            .eq('id', newId)
+            .eq('id', newMsg.id)
             .single()
 
           if (data) {
@@ -296,15 +339,25 @@ export default function ChatRoomPage() {
                 ? prev
                 : [...prev, data as ChatMessage]
             )
+            setTimeout(() => {
+              bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+            }, 50)
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          toast.error('Chat connection lost. Please refresh.')
+        }
+      })
+
+    channelRef.current = channel
 
     return () => {
       void supabase.removeChannel(channel)
+      channelRef.current = null
     }
-  }, [supabase, taskId])
+  }, [supabase, taskId, userId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -328,7 +381,7 @@ export default function ChatRoomPage() {
     setNewMessage('')
 
     try {
-      let fileUrl: string | undefined
+      let filePath: string | undefined
       let fileName: string | undefined
 
       if (attachedFile) {
@@ -337,7 +390,7 @@ export default function ChatRoomPage() {
           data: { user },
         } = await supabase.auth.getUser()
         const ext = attachedFile.name.split('.').pop()
-        const filePath = `${user?.id}/${taskId}/${Date.now()}.${ext}`
+        filePath = `${user?.id}/${taskId}/${Date.now()}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('task-files')
           .upload(filePath, attachedFile)
@@ -346,8 +399,6 @@ export default function ChatRoomPage() {
           throw new Error(`File upload failed: ${uploadError.message}`)
         }
 
-        const { data: urlData } = supabase.storage.from('task-files').getPublicUrl(filePath)
-        fileUrl = urlData.publicUrl
         fileName = attachedFile.name
         setAttachedFile(null)
         setUploadingFile(false)
@@ -359,7 +410,7 @@ export default function ChatRoomPage() {
         task_id: taskId,
         sender_id: userId,
         content: content || (fileName ? `Attachment: ${fileName}` : ''),
-        file_url: fileUrl ?? null,
+        file_path: filePath ?? null,
         file_name: fileName ?? null,
         is_system_message: false,
         flagged: false,
@@ -376,7 +427,7 @@ export default function ChatRoomPage() {
         body: JSON.stringify({
           task_id: taskId,
           content: content || (fileName ? `Attachment: ${fileName}` : 'Attachment'),
-          file_url: fileUrl,
+          file_path: filePath,
           file_name: fileName,
         }),
       })
@@ -417,7 +468,13 @@ export default function ChatRoomPage() {
     }
 
     toast.success('Work submitted for review!')
-    setTask((prev) => (prev ? { ...prev, status: 'under_review' } : prev))
+    const refreshed = await fetch(`/api/tasks/${taskId}`)
+    const refreshedJson = await refreshed.json()
+    if (refreshedJson.success) {
+      setTask(refreshedJson.data as ChatTask)
+    } else {
+      setTask((prev) => (prev ? { ...prev, status: 'under_review' } : prev))
+    }
   }, [taskId])
 
   const acceptWork = useCallback(async () => {
@@ -661,7 +718,12 @@ export default function ChatRoomPage() {
                           : 'rounded-bl-md bg-muted text-foreground'
                       }`}
                     >
-                      {message.file_url ? (
+                      {message.file_path ? (
+                        <FileAttachment
+                          filePath={message.file_path}
+                          fileName={message.file_name}
+                        />
+                      ) : message.file_url ? (
                         <a
                           href={message.file_url}
                           target="_blank"
@@ -811,3 +873,4 @@ export default function ChatRoomPage() {
     </>
   )
 }
+

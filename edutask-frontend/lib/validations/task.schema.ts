@@ -25,6 +25,7 @@ export const hireWorkerSchema = z.object({
 
 export const submitWorkSchema = z.object({
   message: z.string().min(1).max(5000).optional(),
+  file_path: z.string().min(1).optional(),
   file_url: z.string().url().optional(),
   file_name: z.string().optional(),
 })
@@ -58,6 +59,7 @@ export const withdrawSchema = z.object({
 export const sendMessageSchema = z.object({
   task_id: z.string().uuid(),
   content: z.string().min(1).max(5000),
+  file_path: z.string().min(1).optional(),
   file_url: z.string().url().optional(),
   file_name: z.string().optional(),
 })

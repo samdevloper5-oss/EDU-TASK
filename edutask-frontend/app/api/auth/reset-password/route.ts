@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { resetPasswordSchema } from '@/lib/validations/auth.schema'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const { email, token, newPassword } = parsed.data
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   const { error: verifyError } = await supabase.auth.verifyOtp({
     email: email.toLowerCase().trim(),
@@ -56,3 +56,4 @@ export async function POST(request: Request) {
     message: 'Password updated. You can now sign in.',
   })
 }
+

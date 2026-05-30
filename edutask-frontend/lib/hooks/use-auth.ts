@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
 import type { User } from '@/types'
 
@@ -73,3 +73,4 @@ export function useAuth() {
 
   return { user, isLoading, isEmailVerified, isProfileComplete, signOut }
 }
+

@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     return apiErr(parsed.error.errors[0].message, 400)
   }
 
-  const { task_id: taskId, file_url, file_name } = parsed.data
+  const { task_id: taskId, file_path, file_url, file_name } = parsed.data
   const content = sanitizeText(parsed.data.content)
 
   const { data: task } = await supabaseAdmin
@@ -84,7 +84,8 @@ export async function POST(request: Request) {
       task_id: taskId,
       sender_id: user.id,
       content,
-      message_type: file_url ? 'file' : 'text',
+      message_type: file_path || file_url ? 'file' : 'text',
+      file_path: file_path ?? null,
       file_url: file_url ?? null,
       file_name: file_name ? sanitizeText(file_name) : null,
       is_system_message: false,
@@ -95,8 +96,7 @@ export async function POST(request: Request) {
 
   if (error || !message) return apiErr('Failed to send message', 500)
 
-  const recipientId =
-    user.id === task.poster_id ? task.hired_worker_id : task.poster_id
+  const recipientId = user.id === task.poster_id ? task.hired_worker_id : task.poster_id
 
   if (recipientId) {
     await createNotification({

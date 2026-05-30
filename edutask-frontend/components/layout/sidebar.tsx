@@ -37,7 +37,7 @@ export const Sidebar = memo(function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-card z-40">
       <div className="p-6 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-sm">E</span>
         </div>
         <span className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>

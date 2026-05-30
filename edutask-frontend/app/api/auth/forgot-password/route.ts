@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { forgotPasswordSchema } from '@/lib/validations/auth.schema'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/reset-password`
 
   await supabase.auth.resetPasswordForEmail(parsed.data.email.toLowerCase().trim(), {
@@ -38,3 +38,4 @@ export async function POST(request: Request) {
     message: 'If that email exists, a reset code was sent.',
   })
 }
+

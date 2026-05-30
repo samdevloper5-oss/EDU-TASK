@@ -171,6 +171,7 @@ export interface Database {
           sender_id: string | null
           content: string
           message_type: 'text' | 'file' | 'system'
+          file_path: string | null
           file_url: string | null
           file_name: string | null
           file_size: number | null
@@ -185,6 +186,7 @@ export interface Database {
           sender_id?: string | null
           content: string
           message_type?: 'text' | 'file' | 'system'
+          file_path?: string | null
           file_url?: string | null
           file_name?: string | null
           file_size?: number | null

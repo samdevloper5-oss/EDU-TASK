@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClipboardList, Loader2, Clock, Users } from 'lucide-react'
@@ -223,3 +223,4 @@ export default function MyTasksPage() {
     </div>
   )
 }
+

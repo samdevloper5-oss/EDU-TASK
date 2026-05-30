@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { rateLimitByIP } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Email required' }, { status: 400 })
   }
 
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email: email.toLowerCase().trim(),
@@ -32,3 +32,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true })
 }
+

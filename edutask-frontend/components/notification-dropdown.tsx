@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Bell } from 'lucide-react'
 import type { Notification } from '@/types'
 
@@ -92,3 +92,4 @@ export function NotificationDropdown({ onClose }: { onClose: () => void }) {
     </div>
   )
 }
+

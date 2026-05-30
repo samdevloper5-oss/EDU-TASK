@@ -54,15 +54,17 @@ export async function POST(
   }
 
   const submissionMessage = parsed.data.message ? sanitizeText(parsed.data.message) : 'Work submitted'
+  const submittedFilePath = parsed.data.file_path ?? parsed.data.file_url ?? null
 
   await Promise.all([
-    parsed.data.message || parsed.data.file_url
+    parsed.data.message || submittedFilePath
       ? supabaseAdmin.from('messages').insert({
           task_id: taskId,
           sender_id: user.id,
           content: submissionMessage,
-          message_type: parsed.data.file_url ? 'file' : 'text',
-          file_url: parsed.data.file_url ?? null,
+          message_type: submittedFilePath ? 'file' : 'text',
+          file_path: submittedFilePath,
+          file_url: null,
           file_name: parsed.data.file_name ? sanitizeText(parsed.data.file_name) : null,
           is_system_message: false,
         })

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -210,3 +210,4 @@ export default function OnboardingPage() {
     </>
   )
 }
+

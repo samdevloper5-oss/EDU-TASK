@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function POST(request: Request) {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -40,3 +40,4 @@ export async function POST(request: Request) {
 
   return NextResponse.redirect(new URL('/admin/verifications', request.url))
 }
+

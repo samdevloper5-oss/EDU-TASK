@@ -140,6 +140,7 @@ export interface Message {
   sender?: User
   content: string
   message_type?: 'text' | 'file' | 'system'
+  file_path?: string | null
   file_url?: string | null
   file_name?: string | null
   is_system_message: boolean

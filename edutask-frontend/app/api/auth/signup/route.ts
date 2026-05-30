@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { registerSchema } from '@/lib/validations/auth.schema'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { rateLimitByIP } from '@/lib/rate-limit'
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   const { name, email, password } = parsed.data
   const normalizedEmail = email.toLowerCase().trim()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signUp({
     email: normalizedEmail,
@@ -70,3 +70,4 @@ export async function POST(request: Request) {
     userId: data.user?.id,
   })
 }
+

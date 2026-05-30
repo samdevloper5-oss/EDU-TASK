@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
 import { TopBar } from '@/components/layout/top-bar'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     redirect('/signin')
@@ -38,9 +40,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="md:ml-64">
         <TopBar />
         <main className="pb-20 md:pb-0">
-          <div className="p-6 max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="p-6 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
       <MobileBottomNav />

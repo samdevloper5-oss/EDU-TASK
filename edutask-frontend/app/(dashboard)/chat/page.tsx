@@ -4,7 +4,7 @@ import { memo, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Clock, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
 
 interface Conversation {
@@ -179,3 +179,4 @@ export default function ChatListPage() {
     </div>
   )
 }
+

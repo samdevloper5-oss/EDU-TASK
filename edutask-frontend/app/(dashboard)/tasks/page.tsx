@@ -22,23 +22,26 @@ export default function TasksPage() {
     staleTime: 20 * 1000,
   })
 
-  const filtered = tasks.filter((t: any) =>
-    t.title.toLowerCase().includes(search.toLowerCase()) ||
-    t.description.toLowerCase().includes(search.toLowerCase())
+  const filtered = tasks.filter((task: any) =>
+    task.title.toLowerCase().includes(search.toLowerCase()) ||
+    task.description.toLowerCase().includes(search.toLowerCase())
   )
 
-  const taskWithDeadline = filtered.map((task: any) => {
-    const daysLeft = Math.ceil((new Date(task.deadline).getTime() - Date.now()) / 86400000)
-    return { ...task, daysLeft }
-  })
+  const taskWithDeadline = filtered.map((task: any) => ({
+    ...task,
+    daysLeft: Math.ceil((new Date(task.deadline).getTime() - Date.now()) / 86400000),
+  }))
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>Task Marketplace</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <p className="text-label mb-2">Marketplace</p>
+          <h1 className="text-2xl font-bold text-[#0F0F0F] tracking-tight">Tasks</h1>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-48 bg-muted animate-pulse rounded-2xl" />
+            <div key={i} className="h-52 rounded-2xl border border-[#E5E5E3] bg-[#F4F4F2] animate-pulse" />
           ))}
         </div>
       </div>
@@ -47,90 +50,104 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>Task Marketplace</h1>
+      <div>
+        <p className="text-label mb-2">Marketplace</p>
+        <h1 className="text-2xl font-bold text-[#0F0F0F] tracking-tight">Tasks</h1>
+      </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tasks..." className="pl-10 rounded-xl" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#A3A3A3]" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search tasks..."
+            className="pl-9"
+          />
         </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((cat) => (
+      <div className="flex flex-wrap gap-2">
+        {categories.map((category) => (
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeCategory === cat
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+            key={category}
+            type="button"
+            onClick={() => setActiveCategory(category)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeCategory === category
+                ? 'border-[#4F46E5] bg-[#4F46E5] text-white'
+                : 'border-[#E5E5E3] bg-white text-[#6B6B6B] hover:bg-[#F4F4F2] hover:text-[#0F0F0F]'
             }`}
           >
-            {cat}
+            {category}
           </button>
         ))}
       </div>
 
       {taskWithDeadline.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <Filter className="w-10 h-10 mx-auto mb-3 opacity-50" />
-          <p className="text-lg font-medium">No tasks found</p>
+        <div className="py-20 text-center text-[#6B6B6B]">
+          <Filter className="mx-auto mb-3 size-10 opacity-40" />
+          <p className="text-lg font-medium text-[#0F0F0F]">No tasks found</p>
           <p className="text-sm">Try a different search or category</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {taskWithDeadline.map((task: any) => {
-            const daysLeft = task.daysLeft
-            return (
-              <LazyTaskCard key={task.id}>
-                <Link href={`/tasks/${task.id}`}>
-                  <Card className="p-5 border-border hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all cursor-pointer h-full bg-card rounded-2xl group">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-primary/10 text-primary">{task.category}</span>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {taskWithDeadline.map((task: any) => (
+            <LazyTaskCard key={task.id}>
+              <Link href={`/tasks/${task.id}`} className="block">
+                <Card className="h-full p-5 transition-colors hover:border-[#4F46E5]/30">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-md bg-[#F4F4F2] px-2.5 py-1 text-xs font-semibold text-[#4F46E5]">
+                        {task.category}
+                      </span>
                       {task.task_mode === 'online' && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">Online</span>
+                        <span className="rounded-md bg-[#F4F4F2] px-2.5 py-1 text-xs font-medium text-[#6B6B6B]">
+                          Online
+                        </span>
                       )}
                     </div>
-                    <span className={`text-xs flex items-center gap-1 ${daysLeft < 1 ? 'text-red-500' : daysLeft <= 3 ? 'text-amber-500' : 'text-muted-foreground'}`}>
-                      <Clock className="w-3 h-3" />
-                      {daysLeft > 0 ? `${daysLeft}d` : 'Expired'}
+                    <span className={`flex items-center gap-1 text-xs ${task.daysLeft < 1 ? 'text-red-500' : task.daysLeft <= 3 ? 'text-amber-500' : 'text-[#A3A3A3]'}`}>
+                      <Clock className="size-3" />
+                      {task.daysLeft > 0 ? `${task.daysLeft}d` : 'Expired'}
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-sm mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">{task.title}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">{task.description}</p>
+                  <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[#0F0F0F]">
+                    {task.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 text-xs text-[#6B6B6B] leading-relaxed">{task.description}</p>
 
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {(task.required_skills ?? []).slice(0, 3).map((s: string) => (
-                      <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{s}</span>
+                  <div className="mt-4 flex flex-wrap gap-1">
+                    {(task.required_skills ?? []).slice(0, 3).map((skill: string) => (
+                      <span key={skill} className="rounded bg-[#F4F4F2] px-2 py-0.5 text-[10px] font-medium text-[#6B6B6B]">
+                        {skill}
+                      </span>
                     ))}
-                    {(task.required_skills ?? []).length > 3 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">+{(task.required_skills ?? []).length - 3}</span>
-                    )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <div className="mt-4 flex items-center justify-between border-t border-[#E5E5E3] pt-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold overflow-hidden">
-                        {task.poster?.profile_photo_url
-                          ? <img src={task.poster.profile_photo_url} className="w-full h-full object-cover" alt="" />
-                          : task.poster?.full_name?.[0]?.toUpperCase() ?? 'U'}
+                      <div className="size-6 overflow-hidden rounded-full bg-[#4F46E5]/10 flex items-center justify-center text-[10px] font-bold text-[#4F46E5]">
+                        {task.poster?.profile_photo_url ? (
+                          <img src={task.poster.profile_photo_url} className="size-full object-cover" alt="" />
+                        ) : (
+                          task.poster?.full_name?.[0]?.toUpperCase() ?? 'U'
+                        )}
                       </div>
-                      <span className="text-xs text-muted-foreground truncate max-w-[100px]">{task.poster?.full_name ?? 'Unknown'}</span>
-                      <span className="text-[10px] text-muted-foreground">· {task.poster?.trust_score ?? 0}</span>
+                      <span className="max-w-[100px] truncate text-xs text-[#6B6B6B]">
+                        {task.poster?.full_name ?? 'Unknown'}
+                      </span>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-bold text-primary">{task.budget?.toLocaleString()}৳</p>
-                      <p className="text-[10px] text-muted-foreground">{task.applicant_count ?? 0} applicants</p>
+                      <p className="text-sm font-bold text-[#0F0F0F]">৳{task.budget?.toLocaleString()}</p>
+                      <p className="text-[10px] text-[#A3A3A3]">{task.applicant_count ?? 0} applicants</p>
                     </div>
                   </div>
                 </Card>
-                </Link>
-              </LazyTaskCard>
-            )
-          })}
+              </Link>
+            </LazyTaskCard>
+          ))}
         </div>
       )}
     </div>
