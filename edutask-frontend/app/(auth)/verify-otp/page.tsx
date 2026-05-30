@@ -97,9 +97,13 @@ function VerifyOTPContent() {
         setTimeout(() => setErrorShake(false), 500)
         throw new Error(data.error || 'Invalid OTP')
       }
-      toast.success('Email verified! Setting up your profile...')
+      toast.success('Email verified!')
       await new Promise((resolve) => setTimeout(resolve, 800))
-      router.push('/onboarding')
+      if (data.isAdmin) {
+        router.push('/admin')
+      } else {
+        router.push('/onboarding')
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Verification failed')
     } finally {

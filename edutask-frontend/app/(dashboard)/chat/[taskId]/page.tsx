@@ -165,9 +165,6 @@ function ReviewModal({
             {submitting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Star className="mr-2 size-4" />}
             Submit Review
           </Button>
-          <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">
-            Skip
-          </Button>
         </div>
       </Card>
     </div>

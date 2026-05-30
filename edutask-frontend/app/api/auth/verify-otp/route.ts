@@ -43,17 +43,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: userMessage }, { status: 400 })
   }
 
+  let isAdmin = false
+
   if (data.user && (type === 'signup' || type === 'email')) {
     await supabaseAdmin
       .from('users')
       .update({ email_verified: true })
       .eq('id', data.user.id)
+
+    const { data: profile } = await supabaseAdmin
+      .from('users')
+      .select('is_admin')
+      .eq('id', data.user.id)
+      .single()
+
+    isAdmin = profile?.is_admin ?? false
   }
 
   return NextResponse.json({
     success: true,
     message: 'Email verified successfully!',
-    needsOnboarding: true,
+    needsOnboarding: !isAdmin,
+    isAdmin,
   })
 }
 
