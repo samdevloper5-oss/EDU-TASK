@@ -212,15 +212,19 @@ const MemoNotificationBell = memo(NotificationBell)
 
 function UserMenu() {
   const router = useRouter()
-  const supabase = useMemo(() => createClient(), [])
   const { user, clearAuth } = useAuthStore()
   const [open, setOpen] = useState(false)
 
   const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' })
+    } catch {
+      // Fallback — clear locally if API fails
+    }
     clearAuth()
     router.push('/')
-  }, [supabase, clearAuth, router])
+    router.refresh()
+  }, [clearAuth, router])
 
   const initial = user?.full_name?.[0]?.toUpperCase() ?? 'U'
 
