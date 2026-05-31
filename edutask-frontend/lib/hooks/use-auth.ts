@@ -66,9 +66,14 @@ export function useAuth() {
 
   const signOut = async () => {
     initialized = false
-    await supabase.auth.signOut()
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' })
+    } catch {
+      // Fallback
+    }
     clearAuth()
     router.push('/')
+    router.refresh()
   }
 
   return { user, isLoading, isEmailVerified, isProfileComplete, signOut }
