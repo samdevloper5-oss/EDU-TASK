@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, memo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useAuthStore } from '@/lib/store/auth.store'
@@ -22,6 +22,18 @@ function NotificationBell() {
   const supabase = useMemo(() => createClient(), [])
   const qc = useQueryClient()
   const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showDropdown) return
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showDropdown])
 
   const { data: notifications = [] } = useQuery<NotificationItem[]>({
     queryKey: ['notifications'],
@@ -99,25 +111,13 @@ function NotificationBell() {
       </button>
 
       {showDropdown && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setShowDropdown(false)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                setShowDropdown(false)
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Close notifications"
-          />
-          <div
-            className="
-              fixed inset-x-0 bottom-0 top-auto z-20 overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl
-              md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-96 md:rounded-2xl
-            "
-          >
+        <div
+          ref={dropdownRef}
+          className="
+            fixed inset-x-0 bottom-0 top-auto z-20 overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl
+            md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-96 md:rounded-2xl
+          "
+        >
             <div className="absolute inset-x-0 top-0 flex justify-center pb-1 pt-2 pointer-events-none md:hidden">
               <div className="h-1 w-10 rounded-full bg-border" />
             </div>
@@ -202,7 +202,6 @@ function NotificationBell() {
 
             <div className="md:hidden" style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
           </div>
-        </>
       )}
     </div>
   )
@@ -214,6 +213,18 @@ function UserMenu() {
   const router = useRouter()
   const { user, clearAuth } = useAuthStore()
   const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -247,9 +258,7 @@ function UserMenu() {
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-2xl shadow-xl z-20 overflow-hidden py-1">
+          <div ref={menuRef} className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-2xl shadow-xl z-20 overflow-hidden py-1">
             <Link href="/profile" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted transition-colors">
               <User className="w-4 h-4 text-muted-foreground" /> Profile
             </Link>
@@ -268,7 +277,6 @@ function UserMenu() {
               <LogOut className="size-4" /> Sign out
             </button>
           </div>
-        </>
       )}
     </div>
   )
