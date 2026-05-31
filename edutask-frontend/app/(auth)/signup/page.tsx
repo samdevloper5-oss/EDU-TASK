@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff, Loader2, Check } from 'lucide-react'
@@ -25,7 +26,7 @@ function PasswordStrength({ password }: { password: string }) {
   return (
     <div className="mt-2 space-y-2">
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-1 bg-[#E5E5E3] rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{ width, backgroundColor: color }}
@@ -36,8 +37,8 @@ function PasswordStrength({ password }: { password: string }) {
       <div className="space-y-1">
         {checks.map((c) => (
           <div key={c.label} className="flex items-center gap-1.5">
-            <Check className={`size-3 ${c.pass ? 'text-[#10B981]' : 'text-[#D4D4D4]'}`} />
-            <span className={`text-xs ${c.pass ? 'text-[#10B981]' : 'text-[#A3A3A3]'}`}>{c.label}</span>
+            <Check className={`size-3 ${c.pass ? 'text-success' : 'text-border'}`} />
+            <span className={`text-xs ${c.pass ? 'text-success' : 'text-muted-foreground'}`}>{c.label}</span>
           </div>
         ))}
       </div>
@@ -90,47 +91,47 @@ export default function SignUpPage() {
   }, [name, email, password, confirmPassword, router])
 
   return (
-    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-10">
-          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
+          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">E</span>
           </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
+          <span className="text-foreground font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
         </div>
 
-        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
-          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Create account</h1>
-          <p className="text-[#6B6B6B] text-sm mb-8">Join Bangladesh&apos;s student task marketplace</p>
+        <Card className="p-8 border-border">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight mb-1" style={{ fontFamily: 'var(--font-heading)' }}>Create account</h1>
+          <p className="text-muted-foreground text-sm mb-8">Join Bangladesh&apos;s student task marketplace</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="text-[#0F0F0F] text-sm font-medium">Full Name</Label>
+              <Label className="text-foreground text-sm font-medium">Full Name</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="name"
-                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                className="mt-1.5"
                 placeholder="Your full name"
               />
             </div>
 
             <div>
-              <Label className="text-[#0F0F0F] text-sm font-medium">Email</Label>
+              <Label className="text-foreground text-sm font-medium">Email</Label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                className="mt-1.5"
                 placeholder="you@university.edu"
               />
             </div>
 
             <div>
-              <Label className="text-[#0F0F0F] text-sm font-medium">Password</Label>
+              <Label className="text-foreground text-sm font-medium">Password</Label>
               <div className="relative mt-1.5">
                 <Input
                   type={showPassword ? 'text' : 'password'}
@@ -138,13 +139,13 @@ export default function SignUpPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  className="h-10 bg-white border-[#E5E5E3] rounded-lg text-sm pr-10 focus-visible:ring-[#4F46E5]"
+                  className="pr-10"
                   placeholder="Min 8 chars, uppercase, number"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-[#0F0F0F] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -154,35 +155,35 @@ export default function SignUpPage() {
             </div>
 
             <div>
-              <Label className="text-[#0F0F0F] text-sm font-medium">Confirm Password</Label>
+              <Label className="text-foreground text-sm font-medium">Confirm Password</Label>
               <Input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5]"
+                className="mt-1.5"
                 placeholder="Re-enter password"
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                <p className="text-xs text-destructive mt-1">Passwords do not match</p>
               )}
             </div>
 
             <Button
               type="submit"
-              className="w-full h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors mt-2"
+              className="w-full mt-2"
               disabled={loading || !name || !email || !password || !confirmPassword || password !== confirmPassword}
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : 'Create account'}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[#6B6B6B]">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/signin" className="text-[#4F46E5] font-medium hover:underline">Sign in</Link>
+            <Link href="/signin" className="text-primary font-medium hover:underline">Sign in</Link>
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   )

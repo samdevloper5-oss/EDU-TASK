@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 
 const categories = ['Design', 'Coding', 'Research', 'Writing', 'Data Entry', 'Translation', 'Media', 'Academic Help', 'Other']
@@ -76,9 +77,16 @@ export default function PostTaskPage() {
           </div>
           <div>
             <Label>Category</Label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full mt-1.5 h-10 rounded-xl border border-border bg-background px-3 text-sm">
-              {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
-            </select>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-full mt-1.5">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Budget (BDT)</Label>
@@ -97,7 +105,7 @@ export default function PostTaskPage() {
             <Label>Required Skills (comma separated)</Label>
             <Input value={skills} onChange={(e) => setSkills(e.target.value)} className="mt-1.5" placeholder="Python, Django, REST API" />
           </div>
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Posting...' : 'Post Task'}
           </Button>
         </form>

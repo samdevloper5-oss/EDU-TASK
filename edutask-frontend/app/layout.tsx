@@ -9,8 +9,8 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-body' })
 const sora = Sora({ subsets: ['latin'], variable: '--font-display' })
 
 export const metadata: Metadata = {
-  title: 'EduTask — Student Task Marketplace',
-  description: 'Earn. Learn. Grow — Inside Your Campus.',
+  title: 'EduTask - Student Micro-Task Marketplace',
+  description: 'Earn. Learn. Grow - Inside Your Campus. EduTask connects verified students with trusted campus micro-tasks.',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'EduTask' },
 }

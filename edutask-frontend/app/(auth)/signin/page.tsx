@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react'
@@ -98,37 +99,37 @@ function SignInForm() {
   }, [email, password, router, next])
 
   return (
-    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-10">
-          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
+          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">E</span>
           </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
+          <span className="text-foreground font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
         </div>
 
-        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
-          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Welcome back</h1>
-          <p className="text-[#6B6B6B] text-sm mb-8">Sign in to your account</p>
+        <Card className="p-8 border-border">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight mb-1" style={{ fontFamily: 'var(--font-heading)' }}>Welcome back</h1>
+          <p className="text-muted-foreground text-sm mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSignIn} className="space-y-5">
             <div>
-              <Label className="text-[#0F0F0F] text-sm font-medium">Email</Label>
+              <Label className="text-foreground text-sm font-medium">Email</Label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="mt-1.5 h-10 bg-white border-[#E5E5E3] rounded-lg text-sm focus-visible:ring-[#4F46E5] focus-visible:border-[#4F46E5]"
+                className="mt-1.5"
                 placeholder="you@university.edu"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <Label className="text-[#0F0F0F] text-sm font-medium">Password</Label>
-                <Link href="/forgot-password" className="text-xs text-[#4F46E5] hover:underline">
+                <Label className="text-foreground text-sm font-medium">Password</Label>
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -139,13 +140,13 @@ function SignInForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="h-10 bg-white border-[#E5E5E3] rounded-lg text-sm pr-10 focus-visible:ring-[#4F46E5] focus-visible:border-[#4F46E5]"
+                  className="pr-10"
                   placeholder="Your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-[#0F0F0F] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -155,28 +156,28 @@ function SignInForm() {
 
             <Button
               type="submit"
-              className="w-full h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors"
+              className="w-full"
               disabled={loading || !email || !password}
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : 'Sign in'}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[#6B6B6B]">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             No account?{' '}
-            <Link href="/signup" className="text-[#4F46E5] font-medium hover:underline">
+            <Link href="/signup" className="text-primary font-medium hover:underline">
               Create one
             </Link>
           </p>
-        </div>
+        </Card>
 
-        <p className="mt-6 text-center text-xs text-[#A3A3A3]">
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           By signing in, you agree to EduTask&apos;s{' '}
-          <Link href="/terms" className="underline hover:text-[#6B6B6B]">
+          <Link href="/terms" className="underline hover:text-muted">
             Terms
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="underline hover:text-[#6B6B6B]">
+          <Link href="/privacy" className="underline hover:text-muted">
             Privacy Policy
           </Link>
         </p>

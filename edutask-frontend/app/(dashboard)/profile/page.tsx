@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Star, Shield, Award, Loader2, Camera } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -164,7 +165,7 @@ export default function ProfilePage() {
         </div>
         {editingBio ? (
           <div className="space-y-2">
-            <textarea value={bio} onChange={(e) => setBio(e.target.value)} className="w-full min-h-[100px] rounded-xl border border-border bg-background p-3 text-sm" placeholder="Tell others about yourself..." />
+            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="min-h-[100px]" placeholder="Tell others about yourself..." />
             <Button size="sm" onClick={saveBio} className="bg-primary text-primary-foreground rounded-lg">Save</Button>
           </div>
         ) : (

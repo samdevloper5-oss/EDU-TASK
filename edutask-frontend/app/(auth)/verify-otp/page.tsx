@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -60,7 +61,7 @@ function OTPInput({ value, onChange, onComplete }: { value: string; onChange: (v
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-[#E5E5E3] bg-white text-[#0F0F0F] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/40 focus:border-[#4F46E5] transition-all"
+          className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-border bg-card text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary transition-all"
         />
       ))}
     </div>
@@ -128,22 +129,22 @@ function VerifyOTPContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F7] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link href="/signup" className="flex items-center gap-2 text-sm text-[#6B6B6B] hover:text-[#0F0F0F] transition-colors mb-8">
+        <Link href="/signup" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
           <ArrowLeft className="size-4" /> Back to sign up
         </Link>
 
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="size-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
+          <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">E</span>
           </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">EduTask</span>
+          <span className="text-foreground font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
         </div>
 
-        <div className="bg-white border border-[#E5E5E3] rounded-2xl p-8">
-          <h1 className="text-[#0F0F0F] text-2xl font-bold tracking-tight mb-1">Verify your email</h1>
-          <p className="text-[#6B6B6B] text-sm mb-6">Enter the 6-digit code sent to {email}</p>
+        <Card className="p-8 border-border">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight mb-1" style={{ fontFamily: 'var(--font-heading)' }}>Verify your email</h1>
+          <p className="text-muted-foreground text-sm mb-6">Enter the 6-digit code sent to {email}</p>
 
           <div className={`transition-transform ${errorShake ? 'animate-shake' : ''}`}>
             <OTPInput value={otp} onChange={setOtp} onComplete={handleVerify} />
@@ -151,7 +152,7 @@ function VerifyOTPContent() {
 
           <Button
             onClick={handleVerify}
-            className="w-full mt-6 h-10 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-sm font-medium transition-colors"
+            className="w-full mt-6"
             disabled={loading || otp.length !== 6}
           >
             {loading ? <Loader2 className="size-4 animate-spin" /> : 'Verify Email'}
@@ -159,14 +160,14 @@ function VerifyOTPContent() {
 
           <div className="mt-6 text-center">
             {countdown > 0 ? (
-              <p className="text-sm text-[#6B6B6B]">Resend code in {countdown}s</p>
+              <p className="text-sm text-muted-foreground">Resend code in {countdown}s</p>
             ) : (
-              <button type="button" onClick={handleResend} className="text-sm text-[#4F46E5] hover:underline font-medium">
+              <button type="button" onClick={handleResend} className="text-sm text-primary hover:underline font-medium">
                 Resend code
               </button>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )
@@ -174,7 +175,7 @@ function VerifyOTPContent() {
 
 export default function VerifyOTPPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-[#4F46E5]" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-primary" /></div>}>
       <VerifyOTPContent />
     </Suspense>
   )

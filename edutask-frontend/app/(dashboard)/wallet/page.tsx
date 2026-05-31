@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Wallet, ArrowDownLeft, ArrowUpRight, Lock, TrendingUp, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { fetchWallet } from '@/lib/queries/wallet'
@@ -159,12 +160,17 @@ export default function WalletPage() {
             </div>
             <div>
               <Label className="text-xs">Method</Label>
-              <select value={method} onChange={(e) => setMethod(e.target.value as 'bkash' | 'nagad')} className="w-full mt-1 h-9 rounded-xl border border-border bg-background px-2 text-sm">
-                <option value="bkash">bKash</option>
-                <option value="nagad">Nagad</option>
-              </select>
+              <Select value={method} onValueChange={(v) => setMethod(v as 'bkash' | 'nagad')}>
+                <SelectTrigger className="w-full mt-1 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bkash">bKash</SelectItem>
+                  <SelectItem value="nagad">Nagad</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Button onClick={handleDeposit} disabled={depositMutation.isPending} className="w-full bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl">
+            <Button onClick={handleDeposit} disabled={depositMutation.isPending} className="w-full" variant="default">
               {depositMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Deposit'}
             </Button>
           </div>
@@ -179,16 +185,21 @@ export default function WalletPage() {
             </div>
             <div>
               <Label className="text-xs">Method</Label>
-              <select value={method} onChange={(e) => setMethod(e.target.value as 'bkash' | 'nagad')} className="w-full mt-1 h-9 rounded-xl border border-border bg-background px-2 text-sm">
-                <option value="bkash">bKash</option>
-                <option value="nagad">Nagad</option>
-              </select>
+              <Select value={method} onValueChange={(v) => setMethod(v as 'bkash' | 'nagad')}>
+                <SelectTrigger className="w-full mt-1 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bkash">bKash</SelectItem>
+                  <SelectItem value="nagad">Nagad</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="text-xs">Phone Number</Label>
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" className="mt-1 rounded-xl" />
             </div>
-            <Button onClick={handleWithdraw} disabled={withdrawMutation.isPending} className="w-full bg-red-500 text-white hover:bg-red-600 rounded-xl">
+            <Button onClick={handleWithdraw} disabled={withdrawMutation.isPending} className="w-full" variant="destructive">
               {withdrawMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Withdraw'}
             </Button>
           </div>

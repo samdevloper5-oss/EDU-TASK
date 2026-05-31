@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { Card } from '@/components/ui/card'
 import {
   Users, ListChecks, AlertTriangle, FileCheck,
   TrendingUp, DollarSign, Shield, MessageSquare,
@@ -48,95 +49,95 @@ export default async function AdminOverviewPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-[#0F0F0F] tracking-tight">Overview</h1>
-        <p className="text-[#6B6B6B] text-sm mt-1">Platform health at a glance</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight" style={{ fontFamily: 'var(--font-heading)' }}>Overview</h1>
+        <p className="text-muted-foreground text-sm mt-1">Platform health at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href}>
-            <div className="bg-white border border-[#E5E5E3] rounded-xl p-5 hover:border-[#4F46E5]/30 transition-colors group">
+            <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors group">
               <div className={`size-9 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}>
                 <stat.icon className={`size-4 ${stat.color}`} />
               </div>
-              <p className="text-2xl font-bold text-[#0F0F0F] tracking-tight">{stat.value}</p>
-              <p className="text-sm font-medium text-[#0F0F0F] mt-0.5">{stat.label}</p>
-              <p className="text-xs text-[#A3A3A3] mt-0.5">{stat.sub}</p>
+              <p className="text-2xl font-bold text-foreground tracking-tight">{stat.value}</p>
+              <p className="text-sm font-medium text-foreground mt-0.5">{stat.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.sub}</p>
             </div>
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
+        <Card className="p-5 border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-sm text-[#0F0F0F]">New Users</h2>
-            <Link href="/admin/users" className="text-xs text-[#4F46E5] hover:underline">See all</Link>
+            <h2 className="font-semibold text-sm text-foreground">New Users</h2>
+            <Link href="/admin/users" className="text-xs text-primary hover:underline">See all</Link>
           </div>
           <div className="space-y-3">
             {(recentUsers ?? []).length === 0 ? (
-              <p className="text-sm text-[#A3A3A3] py-4 text-center">No users yet</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No users yet</p>
             ) : (
               (recentUsers ?? []).map((u: any) => (
                 <div key={u.id} className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#0F0F0F] truncate">{u.full_name ?? u.email}</p>
-                    <p className="text-xs text-[#A3A3A3] truncate">{u.email}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{u.full_name ?? u.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                   </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${u.is_banned ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${u.is_banned ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
                     {u.is_banned ? 'Banned' : 'Active'}
                   </span>
                 </div>
               ))
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
+        <Card className="p-5 border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-sm text-[#0F0F0F]">Open Disputes</h2>
-            <Link href="/admin/disputes" className="text-xs text-[#4F46E5] hover:underline">Resolve</Link>
+            <h2 className="font-semibold text-sm text-foreground">Open Disputes</h2>
+            <Link href="/admin/disputes" className="text-xs text-primary hover:underline">Resolve</Link>
           </div>
           {(recentDisputes ?? []).length === 0 ? (
-            <p className="text-sm text-[#A3A3A3] py-6 text-center">No open disputes</p>
+            <p className="text-sm text-muted-foreground py-6 text-center">No open disputes</p>
           ) : (
             <div className="space-y-3">
               {(recentDisputes ?? []).map((d: any) => (
                 <Link key={d.id} href={`/admin/disputes/${d.id}`} className="block group">
-                  <p className="text-sm font-medium text-[#0F0F0F] group-hover:text-[#4F46E5] transition-colors truncate">{d.title}</p>
-                  <p className="text-xs text-[#A3A3A3]">{d.poster?.full_name ?? 'Unknown'} · {new Date(d.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{d.title}</p>
+                  <p className="text-xs text-muted-foreground">{d.poster?.full_name ?? 'Unknown'} · {new Date(d.created_at).toLocaleDateString()}</p>
                 </Link>
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-white border border-[#E5E5E3] rounded-xl p-5">
+        <Card className="p-5 border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-sm text-[#0F0F0F]">Recent Transactions</h2>
-            <Link href="/admin/transactions" className="text-xs text-[#4F46E5] hover:underline">See all</Link>
+            <h2 className="font-semibold text-sm text-foreground">Recent Transactions</h2>
+            <Link href="/admin/transactions" className="text-xs text-primary hover:underline">See all</Link>
           </div>
           <div className="space-y-2.5">
             {(recentTransactions ?? []).length === 0 ? (
-              <p className="text-sm text-[#A3A3A3] py-4 text-center">No transactions yet</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet</p>
             ) : (
               (recentTransactions ?? []).map((tx: any) => (
                 <div key={tx.id} className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#0F0F0F] capitalize">{tx.type.replace(/_/g, ' ')}</p>
-                    <p className="text-[10px] text-[#A3A3A3] truncate">{tx.user?.full_name ?? '—'}</p>
+                    <p className="text-xs font-medium text-foreground capitalize">{tx.type.replace(/_/g, ' ')}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{tx.user?.full_name ?? '—'}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`text-xs font-bold ${Number(tx.net_amount) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    <p className={`text-xs font-bold ${Number(tx.net_amount) >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {Number(tx.net_amount) >= 0 ? '+' : ''}৳{Math.abs(Number(tx.net_amount)).toLocaleString()}
                     </p>
-                    <p className={`text-[10px] ${tx.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>{tx.status}</p>
+                    <p className={`text-[10px] ${tx.status === 'completed' ? 'text-success' : 'text-warning'}`}>{tx.status}</p>
                   </div>
                 </div>
               ))
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

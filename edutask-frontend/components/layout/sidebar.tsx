@@ -14,6 +14,8 @@ import {
   User,
   Shield,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -36,14 +38,14 @@ export const Sidebar = memo(function Sidebar() {
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-card z-40">
-      <div className="p-6 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center">
+      <div className="p-5 flex items-center gap-2.5 border-b border-border">
+        <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-indigo-400 flex items-center justify-center shadow-md shadow-primary/20">
           <span className="text-primary-foreground font-bold text-sm">E</span>
         </div>
-        <span className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
+        <span className="font-bold text-lg text-foreground" style={{ fontFamily: 'var(--font-heading)' }}>EduTask</span>
       </div>
 
-      <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
@@ -51,13 +53,13 @@ export const Sidebar = memo(function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
                 active
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  ? 'bg-gradient-to-r from-primary to-indigo-500 text-primary-foreground shadow-md shadow-primary/20'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="size-[18px]" />
               {item.label}
             </Link>
           )
@@ -66,13 +68,13 @@ export const Sidebar = memo(function Sidebar() {
           <Link
             href="/admin"
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
               pathname.startsWith('/admin')
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                ? 'bg-gradient-to-r from-primary to-indigo-500 text-primary-foreground shadow-md shadow-primary/20'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
-            <Shield className="w-5 h-5" />
+            <Shield className="size-[18px]" />
             Admin
           </Link>
         )}
@@ -87,12 +89,12 @@ export const Sidebar = memo(function Sidebar() {
           Sign Out
         </button>
         {user && (
-          <div className="mt-4 flex items-center gap-3 px-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+          <div className="mt-4 flex items-center gap-3 px-2">
+            <div className="size-9 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center text-primary font-bold text-xs shadow-sm">
               {user.full_name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{user.full_name}</p>
+              <p className="text-sm font-semibold text-foreground truncate">{user.full_name}</p>
               <p className="text-xs text-muted-foreground truncate">⭐ {user.trust_score}</p>
             </div>
           </div>

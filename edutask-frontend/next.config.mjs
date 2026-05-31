@@ -32,7 +32,7 @@ const nextConfig = {
     ],
   },
   turbopack: {
-    root: __dirname,
+    root: path.resolve(__dirname, '..'),
   },
   async headers() {
     return [
