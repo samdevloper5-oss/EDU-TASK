@@ -244,8 +244,8 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/invite.html"
 
 [auth.email.template.confirmation]
-subject = "Your EduTask verification code - {{ .Token }}"
-content_path = "templates/confirmation.html"
+subject = "Verify your EduTask email"
+content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
